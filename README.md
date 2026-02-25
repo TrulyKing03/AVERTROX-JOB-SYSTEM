@@ -172,6 +172,110 @@ Player job data loads on join and saves on quit + autosave interval + shutdown.
 - Plays a short achievement-style sound.
 - Shows particle-based celebration burst (non-damaging).
 
+## Understanding the Plugin (Player Guide)
+
+This section is for players who just want to know how things work without technical detail.
+
+### What is XP?
+
+XP is your progression score for a specific job.
+
+- You gain XP by doing that job's actions.
+  - Farmer: harvesting crops
+  - Fisher: catching fish
+  - Woodcutter: chopping logs
+  - Miner: mining valid blocks for miner progression
+- More XP means higher level in that job.
+
+### What does level do?
+
+Level unlocks stronger job features.
+
+- Higher levels unlock stronger perks and mechanics.
+- Level also lets you upgrade relic tiers further.
+- Each job has its own level track (Farmer level is separate from Miner level).
+
+### What are relics?
+
+Relics are your job tools.
+
+- Each job has its own relic type (hoe, rod, axe, pickaxe).
+- Relics are bound to you and your selected job.
+- Relics get stronger by upgrading tiers.
+- Relic lore (item hover text) shows your perks.
+
+### How do relic upgrades work?
+
+Use the forge menu:
+
+- Open `/jobs upgrade` (for active job) or `/jobs upgrade <job>`.
+- Pay the upgrade cost.
+- If your level is high enough, the relic ascends to the next tier.
+- Higher tiers improve materials, names, and effectiveness.
+
+### Why does my relic name/material change?
+
+That is intended progression feedback.
+
+- Tier increases evolve relic identity and quality.
+- Visual changes help you feel progression.
+- Mythic naming reflects power growth.
+
+### Can I have multiple jobs active at once?
+
+No.
+
+- You can only work one active profession at a time.
+- Change active job in `/jobs`.
+- Switching to another job starts a cooldown timer.
+
+### Do I lose progress when switching jobs?
+
+No.
+
+- You keep XP/level progress for each job.
+- Switching changes your active profession only.
+
+### What if I lose my relic?
+
+If you lose it (death/drop/break), relic tier resets to Stone baseline for that job.
+
+- You can retrieve/reforge your current relic from the forge menu.
+- Non-owners cannot use your relic for progression.
+
+### Why am I not getting XP/money sometimes?
+
+Common reasons:
+
+- Wrong active job selected.
+- Wrong relic for that job.
+- Relic not in main hand.
+- Block was player-placed and blocked by anti-exploit rules.
+- Job action does not qualify for reward in that context.
+
+### How does money work?
+
+- Valid job actions reward money.
+- Some jobs have special bonus events (for example special fish catches).
+- Tool tier and progression can increase earnings.
+- Economy still follows server-side balance constraints and plugin settings.
+
+### Why is anti-exploit needed?
+
+To keep progression fair.
+
+- Place-break loops (placing your own farm blocks and re-breaking) are blocked.
+- Rewards are intended for genuine gameplay actions.
+
+### Quick Start (New Player)
+
+1. Run `/jobs`.
+2. Click the job you want.
+3. Receive your relic tool.
+4. Do that job's actions to gain XP and money.
+5. Upgrade relic tier in forge when available.
+6. Repeat and grow stronger.
+
 ## Progression Deep Dive
 
 This section explains how the full progression loop works in practice, from choosing a job to endgame relic tiers.
