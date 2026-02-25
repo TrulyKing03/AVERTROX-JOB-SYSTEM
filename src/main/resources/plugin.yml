@@ -1,0 +1,9 @@
+name: AvertoxJobSystem
+version: 1.0.0
+main: com.avertox.jobsystem.AvertoxJobSystemPlugin
+api-version: "1.20"
+softdepend: [Vault]
+commands:
+  jobs:
+    description: Open job menus
+    usage: /jobs

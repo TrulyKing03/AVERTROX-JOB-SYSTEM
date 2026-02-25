@@ -1,0 +1,77 @@
+mysql:
+  host: localhost
+  port: 3306
+  database: avertox_jobs
+  username: root
+  password: password
+  pool_size: 10
+
+autosave_minutes: 5
+
+economy:
+  multiplier:
+    default: 1.0
+    high_level: 1.5
+    high_level_threshold: 8
+
+automation:
+  max_blocks_per_player:
+    farmer: 3
+    fisher: 3
+    woodcutter: 3
+    miner: 3
+  base_generation_seconds:
+    farmer: 30
+    fisher: 30
+    woodcutter: 30
+    miner: 30
+
+jobs:
+  farmer:
+    level_thresholds: [0, 100, 250, 450, 700, 1000, 1400, 1900, 2500, 3200]
+    regrowth_seconds: 30
+    tnt_auto_harvest_chance: 0.10
+    upgrade_costs:
+      hoe_1: 500
+      hoe_2: 1200
+      hoe_3: 2400
+  fisher:
+    level_thresholds: [0, 100, 240, 420, 650, 950, 1300, 1750, 2300, 2950]
+    upgrade_costs:
+      rod_1: 500
+      rod_2: 1200
+      rod_3: 2500
+    fish_rarity:
+      common: 0.70
+      rare: 0.23
+      epic: 0.06
+      legendary: 0.01
+  woodcutter:
+    level_thresholds: [0, 100, 240, 420, 650, 950, 1300, 1750, 2300, 2950]
+    upgrade_costs:
+      axe_1: 500
+      axe_2: 1400
+      axe_3: 2800
+  miner:
+    level_thresholds: [0, 100, 260, 470, 730, 1060, 1460, 1940, 2500, 3150]
+    regrowth_seconds: 30
+    upgrade_costs:
+      pickaxe_1: 500
+      pickaxe_2: 1500
+      pickaxe_3: 3200
+
+rewards:
+  farmer:
+    crop_xp: 8
+    crop_money: 6
+  fisher:
+    catch_xp: 10
+    catch_money: 8
+  woodcutter:
+    log_xp: 7
+    log_money: 6
+  miner:
+    ore_xp: 12
+    ore_money: 10
+    stone_xp: 4
+    stone_money: 2

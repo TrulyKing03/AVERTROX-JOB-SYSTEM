@@ -1,0 +1,127 @@
+package com.avertox.jobsystem;
+
+import com.avertox.jobsystem.automation.AutomationManager;
+import com.avertox.jobsystem.command.JobsCommand;
+import com.avertox.jobsystem.config.ConfigManager;
+import com.avertox.jobsystem.data.MySqlManager;
+import com.avertox.jobsystem.economy.EconomyService;
+import com.avertox.jobsystem.gui.MenuManager;
+import com.avertox.jobsystem.jobs.FarmerJob;
+import com.avertox.jobsystem.jobs.FisherJob;
+import com.avertox.jobsystem.jobs.JobManager;
+import com.avertox.jobsystem.jobs.MinerJob;
+import com.avertox.jobsystem.jobs.WoodcutterJob;
+import com.avertox.jobsystem.listener.FarmerListener;
+import com.avertox.jobsystem.listener.FisherListener;
+import com.avertox.jobsystem.listener.MinerListener;
+import com.avertox.jobsystem.listener.PlayerConnectionListener;
+import com.avertox.jobsystem.listener.AutomationListener;
+import com.avertox.jobsystem.listener.CraftingListener;
+import com.avertox.jobsystem.listener.WoodcutterListener;
+import com.avertox.jobsystem.recipes.CustomCraftingManager;
+import com.avertox.jobsystem.recipes.RecipeManager;
+import org.bukkit.Bukkit;
+import org.bukkit.command.PluginCommand;
+import org.bukkit.plugin.PluginManager;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitTask;
+
+public class AvertoxJobSystemPlugin extends JavaPlugin {
+    private ConfigManager configManager;
+    private MySqlManager mySqlManager;
+    private EconomyService economyService;
+    private JobManager jobManager;
+    private RecipeManager recipeManager;
+    private CustomCraftingManager customCraftingManager;
+    private AutomationManager automationManager;
+    private MenuManager menuManager;
+    private BukkitTask autosaveTask;
+
+    @Override
+    public void onEnable() {
+        this.configManager = new ConfigManager(this);
+        this.mySqlManager = new MySqlManager(this, configManager);
+        this.mySqlManager.connect();
+
+        this.economyService = new EconomyService(this);
+        if (!economyService.setup()) {
+            getLogger().severe("Vault economy not found. Disabling plugin.");
+            Bukkit.getPluginManager().disablePlugin(this);
+            return;
+        }
+
+        this.jobManager = new JobManager(mySqlManager, economyService);
+        FarmerJob farmerJob = new FarmerJob(configManager);
+        FisherJob fisherJob = new FisherJob(configManager);
+        WoodcutterJob woodcutterJob = new WoodcutterJob(configManager);
+        MinerJob minerJob = new MinerJob(configManager);
+        jobManager.registerJob(farmerJob);
+        jobManager.registerJob(fisherJob);
+        jobManager.registerJob(woodcutterJob);
+        jobManager.registerJob(minerJob);
+
+        this.recipeManager = new RecipeManager();
+        this.customCraftingManager = new CustomCraftingManager(this);
+        customCraftingManager.registerRecipes();
+        this.automationManager = new AutomationManager(this, configManager, mySqlManager);
+        automationManager.start();
+        this.menuManager = new MenuManager();
+
+        registerListeners(farmerJob, fisherJob, woodcutterJob, minerJob);
+        registerCommands();
+        scheduleAutosave();
+    }
+
+    @Override
+    public void onDisable() {
+        if (autosaveTask != null) {
+            autosaveTask.cancel();
+        }
+        if (automationManager != null) {
+            automationManager.stop();
+        }
+        if (jobManager != null) {
+            jobManager.saveAll();
+        }
+        if (mySqlManager != null) {
+            mySqlManager.disconnect();
+        }
+    }
+
+    private void registerListeners(FarmerJob farmerJob, FisherJob fisherJob, WoodcutterJob woodcutterJob, MinerJob minerJob) {
+        PluginManager pm = getServer().getPluginManager();
+        pm.registerEvents(menuManager, this);
+        pm.registerEvents(new PlayerConnectionListener(jobManager, automationManager), this);
+        pm.registerEvents(new FarmerListener(this, jobManager, configManager, farmerJob), this);
+        pm.registerEvents(new FisherListener(jobManager, configManager, fisherJob), this);
+        pm.registerEvents(new WoodcutterListener(jobManager, configManager, woodcutterJob), this);
+        pm.registerEvents(new MinerListener(jobManager, configManager, minerJob), this);
+        pm.registerEvents(new AutomationListener(jobManager, automationManager, menuManager), this);
+        pm.registerEvents(new CraftingListener(jobManager, customCraftingManager), this);
+    }
+
+    private void registerCommands() {
+        PluginCommand command = getCommand("jobs");
+        if (command == null) {
+            getLogger().warning("Command /jobs is not defined in plugin.yml");
+            return;
+        }
+        command.setExecutor(new JobsCommand(
+                menuManager,
+                jobManager,
+                recipeManager,
+                economyService,
+                configManager,
+                automationManager
+        ));
+    }
+
+    private void scheduleAutosave() {
+        long periodTicks = configManager.getAutosaveMinutes() * 60L * 20L;
+        autosaveTask = Bukkit.getScheduler().runTaskTimerAsynchronously(this, () -> {
+            if (jobManager != null) {
+                jobManager.saveAll();
+            }
+        }, periodTicks, periodTicks);
+    }
+}
