@@ -72,12 +72,11 @@ public class MinerListener implements Listener {
 
         if (material == Material.STONE || material == Material.DEEPSLATE) {
             double xp = configManager.getReward(JobType.MINER, "stone_xp");
-            double money = configManager.getReward(JobType.MINER, "stone_money");
             if (minerJob.hasSpeedBoost(level)) {
                 player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 60, 0, true, false, false));
                 player.addPotionEffect(new PotionEffect(PotionEffectType.FAST_DIGGING, 60, 0, true, false, false));
             }
-            jobManager.addProgress(player, JobType.MINER, xp, money);
+            jobManager.addProgress(player, JobType.MINER, xp, 0.0D);
         }
     }
 
@@ -90,7 +89,9 @@ public class MinerListener implements Listener {
             case COAL_ORE, DEEPSLATE_COAL_ORE -> Material.COAL;
             case IRON_ORE, DEEPSLATE_IRON_ORE -> Material.RAW_IRON;
             case COPPER_ORE, DEEPSLATE_COPPER_ORE -> Material.RAW_COPPER;
-            case GOLD_ORE, DEEPSLATE_GOLD_ORE -> Material.RAW_GOLD;
+            case GOLD_ORE, DEEPSLATE_GOLD_ORE, NETHER_GOLD_ORE -> Material.RAW_GOLD;
+            case NETHER_QUARTZ_ORE -> Material.QUARTZ;
+            case ANCIENT_DEBRIS -> Material.ANCIENT_DEBRIS;
             case REDSTONE_ORE, DEEPSLATE_REDSTONE_ORE -> Material.REDSTONE;
             case LAPIS_ORE, DEEPSLATE_LAPIS_ORE -> Material.LAPIS_LAZULI;
             case DIAMOND_ORE, DEEPSLATE_DIAMOND_ORE -> Material.DIAMOND;
