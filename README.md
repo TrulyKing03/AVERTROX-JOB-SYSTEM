@@ -1,4 +1,4 @@
-﻿<h1 align="center">?? AvertoxJobSystem</h1>
+<h1 align="center">⛏️ AvertoxJobSystem</h1>
 <p align="center">
   <b>Advanced Jobs Progression System for Spigot/Paper 1.20.4</b><br>
   Developed by <b>TrulyKing03</b> • All Rights Reserved
@@ -15,7 +15,7 @@
 
 ---
 
-## ?? Overview
+## 💡 Overview
 
 **AvertoxJobSystem** is a full RPG-style jobs framework with progression, relic tools, economy rewards, automation blocks, anti-exploit protections, and job-locked recipes.
 
@@ -23,24 +23,24 @@ Players choose one active profession, grind XP and money through valid gameplay,
 
 ---
 
-## ?? Feature Showcase
+## 🌈 Feature Showcase
 
 | Type | Highlights |
 |------|-------------|
-| ?? **Job System** | 4 jobs: Farmer, Fisher, Woodcutter, Miner |
-| ?? **Progression** | Per-job XP/level tracks with configurable thresholds |
-| ?? **Relic Tools** | Owner-bound, tiered job tools with evolving perks |
-| ?? **Economy** | Vault payouts and upgrade costs |
-| ?? **Admin Toolkit** | `/jobsadmin` GUI for complete progression testing |
-| ?? **Automation** | Per-job passive blocks at level 10 |
-| ?? **Recipes** | Job-restricted unlockable crafting recipes |
-| ??? **Anti-Exploit** | Blocks place-break farming loops |
-| ??? **Persistence** | MySQL-backed player and automation data |
-| ?? **GUI Suite** | Overview, upgrade/anvil, recipes, and automation collection menus |
+| 🧭 **Job System** | 4 jobs: Farmer, Fisher, Woodcutter, Miner |
+| 📈 **Progression** | Per-job XP/level tracks with configurable thresholds |
+| 🗿 **Relic Tools** | Owner-bound, tiered job tools with evolving perks |
+| 💰 **Economy** | Vault payouts and upgrade costs |
+| 🧪 **Admin Toolkit** | `/jobsadmin` GUI for complete progression testing |
+| 🤖 **Automation** | Per-job passive blocks at level 10 |
+| 📜 **Recipes** | Job-restricted unlockable crafting recipes |
+| 🛡️ **Anti-Exploit** | Blocks place-break farming loops |
+| 🗄️ **Persistence** | MySQL-backed player and automation data |
+| 🧰 **GUI Suite** | Overview, upgrade/anvil, recipes, and automation collection menus |
 
 ---
 
-## ?? Requirements
+## 🧱 Requirements
 
 - Java 17
 - Maven 3.8+
@@ -50,7 +50,7 @@ Players choose one active profession, grind XP and money through valid gameplay,
 
 ---
 
-## ?? Build
+## 🛠 Build
 
 ```bash
 mvn clean package
@@ -61,7 +61,7 @@ Output jar:
 
 ---
 
-## ?? Installation
+## 🚀 Installation
 
 1. Put the jar in your server `plugins/` folder.
 2. Ensure Vault and an economy provider are installed.
@@ -71,7 +71,7 @@ Output jar:
 
 ---
 
-## ?? Configuration
+## ⚙️ Configuration
 
 Main config source: `src/main/resources/config.yml`  
 Runtime copy: `plugins/AvertoxJobSystem/config.yml`
@@ -89,7 +89,7 @@ Config includes:
 
 ---
 
-## ?? Commands
+## 🎮 Commands
 
 - `/jobs`
   - Opens Job Overview Menu
@@ -107,7 +107,7 @@ Config includes:
 
 ---
 
-## ?? Admin GUI Controls
+## 🧪 Admin GUI Controls
 
 - Player selection
 - Per-job context switch
@@ -125,7 +125,7 @@ Permission:
 
 ---
 
-## ?? Active Job Rules
+## 🧭 Active Job Rules
 
 - Only one active profession at a time
 - Click a job in `/jobs` to activate it and receive its tool
@@ -134,7 +134,7 @@ Permission:
 
 ---
 
-## ?? Bound Relic Progression
+## 🗿 Bound Relic Progression
 
 Every job uses a personal, owner-bound relic tool.
 
@@ -154,7 +154,7 @@ Behavior rules:
 
 ---
 
-## ?? Automation Blocks
+## 🤖 Automation Blocks
 
 Unlocks at level 10+:
 - `HAY_BLOCK` -> Auto-Farm
@@ -167,7 +167,7 @@ Unlocks at level 10+:
 
 ---
 
-## ??? Data Storage (MySQL)
+## 🗄️ Data Storage (MySQL)
 
 Auto-created tables:
 
@@ -184,9 +184,9 @@ Data lifecycle:
 
 ---
 
-## ?? Job Progression Highlights
+## 📚 Job Progression Highlights
 
-### ?? Farmer
+### 🌾 Farmer
 - Reduced XP/money baseline for economy balance
 - Drops go directly to inventory
 - Regrowth returns fully grown crops
@@ -194,7 +194,7 @@ Data lifecycle:
 - TNT auto-harvest in 3-block radius with money reward
 - Relic tier scales farming rewards
 
-### ?? Fisher
+### 🎣 Fisher
 - Basic income early game
 - Rod efficiency + rare chance scaling
 - Higher-value fish outcomes at higher levels
@@ -203,13 +203,13 @@ Data lifecycle:
 - Better fishing feel (timing, particles, sounds)
 - Special fish bonus money events
 
-### ?? Woodcutter
+### 🪓 Woodcutter
 - Standard chopping early game
 - Tree-felling unlock mid progression
 - Higher speed + better durability efficiency at later levels
 - Auto-Wood unlock at level 10 (`OAK_WOOD`)
 
-### ?? Miner
+### ⛏️ Miner
 - Early normal mining progression
 - Movement/mining boosts at level milestones
 - Pickaxe upgrade effects in mid tiers
@@ -219,7 +219,7 @@ Data lifecycle:
 
 ---
 
-## ??? Anti-Exploit
+## 🛡️ Anti-Exploit
 
 - Tracks player-placed crops/logs/ores/stones
 - Breaking tracked blocks gives no XP/money
@@ -227,14 +227,14 @@ Data lifecycle:
 
 ---
 
-## ?? Level-Up Effects
+## 🎆 Level-Up Effects
 
 - Achievement-style level-up sound
 - Celebration particles (non-damaging)
 
 ---
 
-## ?? Understanding the Plugin (Player FAQ)
+## 🙋 Understanding the Plugin (Player FAQ)
 
 ### What is XP?
 XP is your progression score for a specific job. More XP -> higher level.
@@ -267,7 +267,7 @@ Typical causes:
 
 ---
 
-## ?? How Systems Interact (Big Picture)
+## 🔁 How Systems Interact (Big Picture)
 
 1. Choose active job in `/jobs`
 2. Receive/use matching relic
@@ -279,7 +279,7 @@ Typical causes:
 
 ---
 
-## ?? Progression Deep Dive
+## 🧠 Progression Deep Dive
 
 ### 1) Core Loop
 Select job -> use relic -> perform job actions -> gain XP/money -> level up -> upgrade relic -> repeat.
@@ -304,7 +304,7 @@ Player-placed block tracking blocks synthetic loops so only genuine gameplay is 
 
 ---
 
-## ?? Notes
+## 🔗 Notes
 
 - Vault is integrated at runtime
 - Built for Spigot API `1.20.4-R0.1-SNAPSHOT`
@@ -312,7 +312,7 @@ Player-placed block tracking blocks synthetic loops so only genuine gameplay is 
 
 ---
 
-## ?? Developer & Rights
+## ⚖️ Developer & Rights
 
 Developed by **TrulyKing03**  
 All rights reserved.  
