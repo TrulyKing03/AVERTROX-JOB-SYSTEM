@@ -25,7 +25,7 @@ public class JobOverviewMenu implements BaseMenu {
     public JobOverviewMenu(JobManager jobManager, JobToolService toolService) {
         this.jobManager = jobManager;
         this.toolService = toolService;
-        this.inventory = Bukkit.createInventory(null, 27, "Job Overview");
+        this.inventory = Bukkit.createInventory(null, 54, "Mythic Professions");
     }
 
     @Override
@@ -45,10 +45,10 @@ public class JobOverviewMenu implements BaseMenu {
             return;
         }
         JobType target = switch (event.getRawSlot()) {
-            case 10 -> JobType.FARMER;
-            case 12 -> JobType.FISHER;
-            case 14 -> JobType.WOODCUTTER;
-            case 16 -> JobType.MINER;
+            case 19 -> JobType.FARMER;
+            case 21 -> JobType.FISHER;
+            case 23 -> JobType.WOODCUTTER;
+            case 25 -> JobType.MINER;
             default -> null;
         };
         if (target == null) {
@@ -64,31 +64,55 @@ public class JobOverviewMenu implements BaseMenu {
         }
         PlayerJobData data = jobManager.getOrCreate(player.getUniqueId(), target);
         toolService.grantCurrentTool(player, data, target);
-        player.sendMessage("§aActive job set to " + target.name() + ". Tool granted.");
+        player.sendMessage("§aActive job set to " + target.name() + ". Your forged tool has been granted.");
     }
 
     @Override
     public void refresh(Player player) {
         inventory.clear();
-        int[] slots = {10, 12, 14, 16};
-        int idx = 0;
+        MenuUtil.frame(inventory, Material.BLACK_STAINED_GLASS_PANE, "§0");
+
         JobType active = jobManager.getActiveJob(player.getUniqueId());
-        for (JobType type : JobType.values()) {
-            PlayerJobData data = jobManager.getOrCreate(player.getUniqueId(), type);
-            Material icon = switch (type) {
-                case FARMER -> Material.WHEAT;
-                case FISHER -> Material.FISHING_ROD;
-                case WOODCUTTER -> Material.IRON_AXE;
-                case MINER -> Material.IRON_PICKAXE;
-            };
-            List<String> lore = new ArrayList<>();
-            lore.add("§7Level: §f" + data.getLevel());
-            lore.add("§7XP: §f" + String.format("%.1f", data.getXp()));
-            lore.add("§7Money Earned: §a" + String.format("%.2f", data.getMoneyEarned()));
-            lore.add("§7Tool Tier: §f" + toolService.getToolTier(data, type));
-            lore.add(active == type ? "§aACTIVE JOB" : "§eClick to learn/switch");
-            ItemStack stack = MenuUtil.item(icon, "§e" + type.name(), lore);
-            inventory.setItem(slots[idx++], stack);
-        }
+        inventory.setItem(4, MenuUtil.item(Material.NETHER_STAR, "§6§lHall of Professions", List.of(
+                "§7Choose your active profession.",
+                "§7Only one can be active at a time.",
+                "§7Switching starts a 24h cooldown."
+        )));
+
+        placeJobCard(player, JobType.FARMER, Material.GOLDEN_HOE, 19, active);
+        placeJobCard(player, JobType.FISHER, Material.FISHING_ROD, 21, active);
+        placeJobCard(player, JobType.WOODCUTTER, Material.GOLDEN_AXE, 23, active);
+        placeJobCard(player, JobType.MINER, Material.GOLDEN_PICKAXE, 25, active);
+
+        long remaining = jobManager.getRemainingSwitchCooldownMillis(player.getUniqueId());
+        long h = TimeUnit.MILLISECONDS.toHours(remaining);
+        long m = TimeUnit.MILLISECONDS.toMinutes(remaining) % 60L;
+        inventory.setItem(49, MenuUtil.item(Material.CLOCK, "§bSwitch Cooldown", List.of(
+                "§7Remaining: §f" + h + "h " + m + "m",
+                "§7Cooldown starts when switching",
+                "§7to a different profession."
+        )));
+    }
+
+    private void placeJobCard(Player player, JobType type, Material icon, int slot, JobType active) {
+        PlayerJobData data = jobManager.getOrCreate(player.getUniqueId(), type);
+        List<String> lore = new ArrayList<>();
+        lore.add("§7Level: §f" + data.getLevel());
+        lore.add("§7XP: §f" + String.format("%.1f", data.getXp()));
+        lore.add("§7Money Earned: §a$" + String.format("%.2f", data.getMoneyEarned()));
+        lore.add("§7Tool Tier: §f" + toolService.getToolTier(data, type));
+        lore.add("§8");
+        lore.add(active == type ? "§a§lACTIVE PROFESSION" : "§eClick to become active");
+        ItemStack card = MenuUtil.item(icon, title(type), lore);
+        inventory.setItem(slot, card);
+    }
+
+    private String title(JobType type) {
+        return switch (type) {
+            case FARMER -> "§a§lDemeter's Harvest";
+            case FISHER -> "§b§lPoseidon's Tide";
+            case WOODCUTTER -> "§6§lArtemis Grove";
+            case MINER -> "§c§lHephaestus Forge";
+        };
     }
 }

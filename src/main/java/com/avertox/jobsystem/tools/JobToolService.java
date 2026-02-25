@@ -76,13 +76,13 @@ public class JobToolService {
     public List<String> perkLore(JobType type, int tier) {
         List<String> perks = new ArrayList<>();
         int t = Math.max(1, Math.min(10, tier));
-        perks.add("+" + (t * 8) + "% action speed");
-        perks.add("+" + (t * 6) + "% reward efficiency");
+        perks.add(ChatColor.BOLD + "+" + (t * 8) + "% action speed");
+        perks.add(ChatColor.BOLD + "+" + (t * 6) + "% reward efficiency");
         switch (type) {
-            case FARMER -> perks.add("Growth pulse +" + (t * 2) + "%");
-            case FISHER -> perks.add("Rare fish chance +" + (t * 3) + "%");
-            case WOODCUTTER -> perks.add("Tree-felling force +" + (t * 4) + "%");
-            case MINER -> perks.add("Ore resonance +" + (t * 4) + "%");
+            case FARMER -> perks.add(ChatColor.ITALIC + "Demeter's Blessing +" + (t * 2) + "% growth pulse");
+            case FISHER -> perks.add(ChatColor.ITALIC + "Poseidon's Favor +" + (t * 3) + "% rare fish chance");
+            case WOODCUTTER -> perks.add(ChatColor.ITALIC + "Artemis' Strike +" + (t * 4) + "% felling force");
+            case MINER -> perks.add(ChatColor.ITALIC + "Hephaestus Core +" + (t * 4) + "% ore resonance");
         }
         return perks;
     }
@@ -188,25 +188,66 @@ public class JobToolService {
     private Material baseMaterial(JobType type, int tier) {
         int t = Math.max(1, Math.min(10, tier));
         return switch (type) {
-            case FARMER -> t <= 2 ? Material.STONE_HOE : t <= 4 ? Material.IRON_HOE : t <= 7 ? Material.DIAMOND_HOE : Material.NETHERITE_HOE;
+            case FARMER -> t <= 2 ? Material.WOODEN_HOE : t <= 4 ? Material.STONE_HOE : t <= 6 ? Material.IRON_HOE : t <= 8 ? Material.DIAMOND_HOE : Material.NETHERITE_HOE;
             case FISHER -> Material.FISHING_ROD;
-            case WOODCUTTER -> t <= 2 ? Material.STONE_AXE : t <= 4 ? Material.IRON_AXE : t <= 7 ? Material.DIAMOND_AXE : Material.NETHERITE_AXE;
-            case MINER -> t <= 2 ? Material.STONE_PICKAXE : t <= 4 ? Material.IRON_PICKAXE : t <= 7 ? Material.DIAMOND_PICKAXE : Material.NETHERITE_PICKAXE;
+            case WOODCUTTER -> t <= 2 ? Material.WOODEN_AXE : t <= 4 ? Material.STONE_AXE : t <= 6 ? Material.IRON_AXE : t <= 8 ? Material.DIAMOND_AXE : Material.NETHERITE_AXE;
+            case MINER -> t <= 2 ? Material.WOODEN_PICKAXE : t <= 4 ? Material.STONE_PICKAXE : t <= 6 ? Material.IRON_PICKAXE : t <= 8 ? Material.DIAMOND_PICKAXE : Material.NETHERITE_PICKAXE;
         };
     }
 
     private String toolName(JobType type, int tier) {
-        String[] ranks = {
-                "Stoneborn", "Forged", "Stormforged", "Mythic", "Relentless",
-                "Titan", "Abyssal", "Celestial", "Voidbound", "Apex"
+        int i = Math.max(0, Math.min(9, tier - 1));
+        String title = switch (type) {
+            case FARMER -> new String[]{
+                    "§6§lGaia's Sprout",
+                    "§e§lDemeter's Root",
+                    "§f§lThresher of Arcadia",
+                    "§7§lAegis Harvest",
+                    "§f§lChronos Furrow",
+                    "§f§lHelios Sickle",
+                    "§b§lOlympian Reaper",
+                    "§3§lTitan Grovefang",
+                    "§5§lAether Bloomcleaver",
+                    "§4§l§nApex of Elysium"
+            }[i];
+            case FISHER -> new String[]{
+                    "§6§lNaiad's Thread",
+                    "§e§lPoseidon's Line",
+                    "§f§lTide of Nereus",
+                    "§7§lTrident Whisper",
+                    "§f§lAegean Vortex",
+                    "§f§lLeviathan Hook",
+                    "§b§lSiren's Verdict",
+                    "§3§lAbyss Oracle",
+                    "§5§lOceanus Crownline",
+                    "§4§l§nThrone of the Deep"
+            }[i];
+            case WOODCUTTER -> new String[]{
+                    "§6§lDryad's Edge",
+                    "§e§lArtemis Cleaver",
+                    "§f§lGrovebreaker",
+                    "§7§lCedar of Sparta",
+                    "§f§lAres Timberfang",
+                    "§f§lPine of Olympus",
+                    "§b§lTitan Woodrend",
+                    "§3§lVerdant Cataclysm",
+                    "§5§lElderheart Ruin",
+                    "§4§l§nWorldtree Executioner"
+            }[i];
+            case MINER -> new String[]{
+                    "§6§lHephaestus Chip",
+                    "§e§lForgeborn Fang",
+                    "§f§lStone of Delphi",
+                    "§7§lUnderforge Pike",
+                    "§f§lAres Deepcut",
+                    "§f§lMagma Titan",
+                    "§b§lOlympian Riftpick",
+                    "§3§lHades Veinbreaker",
+                    "§5§lStyx Coresplitter",
+                    "§4§l§nCrown of Tartarus"
+            }[i];
         };
-        String title = ranks[Math.max(0, Math.min(9, tier - 1))];
-        return ChatColor.GOLD + title + " " + ChatColor.YELLOW + switch (type) {
-            case FARMER -> "Harvester";
-            case FISHER -> "Tidecaller";
-            case WOODCUTTER -> "Wildsplitter";
-            case MINER -> "Deepcore";
-        };
+        return title + ChatColor.DARK_GRAY + ChatColor.STRIKETHROUGH + " ";
     }
 
     private void applyEnchants(ItemMeta meta, JobType type, int tier) {

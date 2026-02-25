@@ -16,6 +16,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class RecipeUnlockMenu implements BaseMenu {
+    private static final int[] RECIPE_SLOTS = {11, 12, 13, 14, 15, 20, 21, 22, 23, 24, 29, 30, 31, 32, 33};
+
     private final JobType jobType;
     private final JobManager jobManager;
     private final RecipeManager recipeManager;
@@ -26,7 +28,7 @@ public class RecipeUnlockMenu implements BaseMenu {
         this.jobType = jobType;
         this.jobManager = jobManager;
         this.recipeManager = recipeManager;
-        this.inventory = Bukkit.createInventory(null, 27, "Recipes: " + jobType.name());
+        this.inventory = Bukkit.createInventory(null, 45, "Codex of " + jobType.name());
     }
 
     @Override
@@ -46,10 +48,11 @@ public class RecipeUnlockMenu implements BaseMenu {
             return;
         }
         int slot = event.getRawSlot();
-        if (slot < 10 || slot >= 10 + slotsToRecipe.size()) {
+        int idx = indexOfSlot(slot);
+        if (idx < 0 || idx >= slotsToRecipe.size()) {
             return;
         }
-        String recipeKey = slotsToRecipe.get(slot - 10);
+        String recipeKey = slotsToRecipe.get(idx);
         PlayerJobData data = jobManager.getOrCreate(player.getUniqueId(), jobType);
         boolean unlocked = recipeManager.unlock(data, jobType, recipeKey);
         if (unlocked) {
@@ -62,22 +65,42 @@ public class RecipeUnlockMenu implements BaseMenu {
     @Override
     public void refresh(Player player) {
         inventory.clear();
+        MenuUtil.frame(inventory, Material.BLUE_STAINED_GLASS_PANE, "§1");
         slotsToRecipe.clear();
+
         PlayerJobData data = jobManager.getOrCreate(player.getUniqueId(), jobType);
-        int slot = 10;
+        inventory.setItem(4, MenuUtil.item(Material.BOOK, "§9§lMythic Recipe Codex", List.of(
+                "§7Profession: §f" + jobType.name(),
+                "§7Level: §f" + data.getLevel(),
+                "§7Unlocked: §a" + data.getUnlockedRecipes().size()
+        )));
+
+        int idx = 0;
         for (String key : recipeManager.availableRecipes(jobType)) {
+            if (idx >= RECIPE_SLOTS.length) {
+                break;
+            }
             int required = recipeManager.requiredLevel(jobType, key);
             boolean unlocked = data.getUnlockedRecipes().contains(key);
             inventory.setItem(
-                    slot,
-                    MenuUtil.item(unlocked ? Material.LIME_DYE : Material.PAPER, "§e" + key, List.of(
+                    RECIPE_SLOTS[idx],
+                    MenuUtil.item(unlocked ? Material.LIME_DYE : Material.PAPER, "§e§l" + key, List.of(
                             "§7Required Level: §f" + required,
                             "§7Status: " + (unlocked ? "§aUnlocked" : "§cLocked"),
-                            "§7Click to unlock"
+                            unlocked ? "§8Already learned" : "§bClick to unlock"
                     ))
             );
             slotsToRecipe.add(key);
-            slot++;
+            idx++;
         }
+    }
+
+    private int indexOfSlot(int slot) {
+        for (int i = 0; i < RECIPE_SLOTS.length; i++) {
+            if (RECIPE_SLOTS[i] == slot) {
+                return i;
+            }
+        }
+        return -1;
     }
 }
