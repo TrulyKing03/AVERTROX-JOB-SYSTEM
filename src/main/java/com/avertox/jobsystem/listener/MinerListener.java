@@ -50,6 +50,13 @@ public class MinerListener implements Listener {
     public void onMine(BlockBreakEvent event) {
         Block block = event.getBlock();
         Material material = block.getType();
+        boolean isMinerBlock = JobMaterials.ORES.contains(material)
+                || material == Material.STONE
+                || material == Material.DEEPSLATE;
+        if (!isMinerBlock) {
+            return;
+        }
+
         Player player = event.getPlayer();
         PlayerJobData data = jobManager.getOrCreate(player.getUniqueId(), JobType.MINER);
         if (!toolService.hasUsableTool(player, JobType.MINER)) {
