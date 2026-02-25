@@ -72,7 +72,7 @@ public class UpgradeAnvilMenu implements BaseMenu {
             }
             double cost = nextTierCost(nextTier);
             if (!economyService.has(player, cost)) {
-                player.sendMessage("§cInsufficient funds.");
+                player.sendMessage("§cInsufficient funds. Needed: $" + String.format("%.2f", cost));
                 return;
             }
             if (!economyService.withdraw(player, cost)) {
@@ -136,7 +136,10 @@ public class UpgradeAnvilMenu implements BaseMenu {
 
     private double nextTierCost(int tier) {
         double base = configManager.getUpgradeCost(jobType, bucketKey(tier));
-        return Math.max(100.0D, base * (1.0D + (tier * 0.45D)));
+        if (base <= 0.0D) {
+            base = 250.0D * Math.max(1, tier);
+        }
+        return Math.max(100.0D, base * (1.0D + (tier * 0.25D)));
     }
 
     private String bucketKey(int tier) {

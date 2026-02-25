@@ -36,8 +36,14 @@ public class EconomyService {
     public boolean has(Player player, double amount) {
         if (economy == null) return false;
         try {
-            Method method = economy.getClass().getMethod("has", org.bukkit.OfflinePlayer.class, double.class);
-            return (boolean) method.invoke(economy, player, amount);
+            try {
+                Method method = economy.getClass().getMethod("has", org.bukkit.OfflinePlayer.class, double.class);
+                return (boolean) method.invoke(economy, player, amount);
+            } catch (NoSuchMethodException ignored) {
+                Method balance = economy.getClass().getMethod("getBalance", org.bukkit.OfflinePlayer.class);
+                double current = ((Number) balance.invoke(economy, player)).doubleValue();
+                return current + 0.0001D >= amount;
+            }
         } catch (Exception ex) {
             return false;
         }

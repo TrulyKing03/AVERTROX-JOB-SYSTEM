@@ -54,6 +54,9 @@ public class WoodcutterListener implements Listener {
             return;
         }
         Player player = event.getPlayer();
+        if (!jobManager.isActiveJob(player.getUniqueId(), JobType.WOODCUTTER)) {
+            return;
+        }
         PlayerJobData data = jobManager.getOrCreate(player.getUniqueId(), JobType.WOODCUTTER);
         if (!toolService.hasUsableTool(player, JobType.WOODCUTTER)) {
             if (toolService.hasOwnedToolInInventory(player, JobType.WOODCUTTER)) {
@@ -96,6 +99,9 @@ public class WoodcutterListener implements Listener {
     @EventHandler
     public void onAxeDamage(PlayerItemDamageEvent event) {
         Player player = event.getPlayer();
+        if (!jobManager.isActiveJob(player.getUniqueId(), JobType.WOODCUTTER)) {
+            return;
+        }
         if (!toolService.hasUsableTool(player, JobType.WOODCUTTER)) {
             return;
         }

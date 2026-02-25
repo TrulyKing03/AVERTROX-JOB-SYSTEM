@@ -10,12 +10,15 @@ import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 public class JobManager {
     private final MySqlManager mySqlManager;
     private final EconomyService economyService;
     private final Map<JobType, Job> jobs = new EnumMap<>(JobType.class);
     private final Map<UUID, Map<JobType, PlayerJobData>> cache = new HashMap<>();
+    private final Map<UUID, JobType> activeJobs = new HashMap<>();
+    private final Map<UUID, Long> lastSwitchMillis = new HashMap<>();
 
     public JobManager(MySqlManager mySqlManager, EconomyService economyService) {
         this.mySqlManager = mySqlManager;
@@ -57,6 +60,8 @@ public class JobManager {
     public void unloadPlayer(UUID uuid) {
         savePlayer(uuid);
         cache.remove(uuid);
+        activeJobs.remove(uuid);
+        lastSwitchMillis.remove(uuid);
     }
 
     public void addProgress(Player player, JobType type, double xp, double baseMoney) {
@@ -75,5 +80,38 @@ public class JobManager {
         for (UUID uuid : cache.keySet()) {
             savePlayer(uuid);
         }
+    }
+
+    public JobType getActiveJob(UUID uuid) {
+        return activeJobs.get(uuid);
+    }
+
+    public boolean isActiveJob(UUID uuid, JobType type) {
+        JobType active = activeJobs.get(uuid);
+        return active != null && active == type;
+    }
+
+    public SwitchResult activateJob(UUID uuid, JobType target) {
+        JobType active = activeJobs.get(uuid);
+        if (active == target) {
+            return new SwitchResult(true, 0L, false);
+        }
+        long now = System.currentTimeMillis();
+        if (active != null) {
+            long last = lastSwitchMillis.getOrDefault(uuid, 0L);
+            long cooldown = TimeUnit.DAYS.toMillis(1);
+            long elapsed = now - last;
+            if (elapsed < cooldown) {
+                return new SwitchResult(false, cooldown - elapsed, true);
+            }
+        }
+        activeJobs.put(uuid, target);
+        if (active != null && active != target) {
+            lastSwitchMillis.put(uuid, now);
+        }
+        return new SwitchResult(true, 0L, false);
+    }
+
+    public record SwitchResult(boolean success, long remainingMillis, boolean onCooldown) {
     }
 }

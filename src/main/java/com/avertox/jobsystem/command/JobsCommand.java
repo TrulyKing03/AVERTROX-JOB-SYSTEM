@@ -47,7 +47,7 @@ public class JobsCommand implements CommandExecutor {
             return true;
         }
         if (args.length == 0) {
-            menuManager.open(player, new JobOverviewMenu(jobManager));
+            menuManager.open(player, new JobOverviewMenu(jobManager, toolService));
             return true;
         }
         if (args.length == 2) {

@@ -2,6 +2,7 @@ com\avertox\jobsystem\config\ConfigManager.class
 com\avertox\jobsystem\automation\AutomationBlock.class
 com\avertox\jobsystem\economy\EconomyService.class
 com\avertox\jobsystem\jobs\FisherJob.class
+com\avertox\jobsystem\jobs\JobManager$SwitchResult.class
 com\avertox\jobsystem\gui\BaseMenu.class
 com\avertox\jobsystem\jobs\MinerJob.class
 com\avertox\jobsystem\automation\AutomationManager.class

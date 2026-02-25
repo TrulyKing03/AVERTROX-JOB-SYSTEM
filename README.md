@@ -3,6 +3,7 @@
 Minecraft job progression plugin (Spigot 1.20.4 API) with:
 - 4 jobs: Farmer, Fisher, Woodcutter, Miner
 - XP/level progression
+- Active-job system (one job at a time, switch cooldown)
 - Vault economy payouts and upgrade spending
 - Owner-bound tiered job tools (stone start -> higher tiers)
 - MySQL persistence
@@ -53,7 +54,7 @@ Config includes:
 ## Commands
 
 - `/jobs`  
-  Opens Job Overview Menu.
+  Opens Job Overview Menu (click a job to learn/select it).
 - `/jobs upgrade <job>`  
   Opens Upgrade/Anvil Menu for a job (`farmer`, `fisher`, `woodcutter`, `miner`) where players:
   - upgrade bound tool tier
@@ -61,6 +62,13 @@ Config includes:
   - retrieve/reforge current tier tool
 - `/jobs recipes <job>`  
   Opens Recipe Unlock Menu for a job.
+
+## Active Job Rules
+
+- Players can only work one profession at a time.
+- Click a job in `/jobs` to set it active and receive the matching bound tool.
+- Job switching is limited to once every 24 hours.
+- Switching jobs does not delete previously earned XP for other jobs.
 
 ## Bound Tool Progression
 
@@ -75,6 +83,7 @@ Config includes:
 - Job actions require holding the correct bound tool for that job.
 - If the owner loses the tool (drop/death/break), tool tier resets back to Stone.
 - If another player picks up someone else's bound tool, it becomes a useless broken relic.
+- If a player has no bound tool, the system auto-grants it when they attempt job work.
 
 ## Automation Blocks
 
@@ -101,9 +110,11 @@ Player job data loads on join and saves on quit + autosave interval + shutdown.
 ## Implemented Progression Highlights
 
 - Farmer:
-  - Crop detection, configurable regrowth timer
-  - TNT auto-harvest chance (configurable)
-  - Level-gated speed/regrowth/automation hooks
+  - Reduced XP/money rate for better economy balance
+  - Crop drops go directly into player inventory
+  - Crop regrowth returns fully grown plants
+  - Right-click crop generation is disabled
+  - TNT auto-harvest destroys crops in 3-block radius, stores drops directly, and rewards money
   - Tool tier scales crop XP/money gain
 - Fisher:
   - Level 1-3: basic fishing income
@@ -111,6 +122,8 @@ Player job data loads on join and saves on quit + autosave interval + shutdown.
   - Level 6: unlock higher-value fish conversions (rare/epic/legendary outcomes)
   - Level 8-9: faster reeling and rare/epic/legendary XP bonus
   - Level 10: Auto-Fishing block unlock (`BARREL`)
+  - Improved fishing feel: faster waits, water particle feedback, better catch audio
+  - Special fish can be caught for extra money
   - Tool tier scales catch rewards and rarity weighting
 - Woodcutter:
   - Level 1-4: standard chopping
@@ -126,6 +139,17 @@ Player job data loads on join and saves on quit + autosave interval + shutdown.
   - Level 10: Auto-Mining block unlock (`BLAST_FURNACE`)
   - Money only from ore blocks (including nether ores)
   - Tool tier scales ore rewards and bonus drop strength
+
+## Anti-Exploit
+
+- Player-placed crops/logs/ores/stones are tracked.
+- Breaking those placed blocks gives no job XP/money.
+- Prevents place-break farming loops.
+
+## Level-Up Effects
+
+- Plays a short achievement-style sound.
+- Shows particle-based celebration burst (non-damaging).
 
 ## Notes
 

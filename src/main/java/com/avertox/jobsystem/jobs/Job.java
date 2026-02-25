@@ -4,12 +4,10 @@ import com.avertox.jobsystem.config.ConfigManager;
 import com.avertox.jobsystem.model.JobType;
 import com.avertox.jobsystem.model.PlayerJobData;
 import org.bukkit.Color;
-import org.bukkit.FireworkEffect;
 import org.bukkit.Location;
+import org.bukkit.Particle;
 import org.bukkit.Sound;
-import org.bukkit.entity.Firework;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.meta.FireworkMeta;
 
 import java.util.List;
 
@@ -62,18 +60,9 @@ public abstract class Job {
         player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 0.9f, 1.15f);
 
         Location loc = player.getLocation().add(0.0, 1.0, 0.0);
-        Firework fw = player.getWorld().spawn(loc, Firework.class);
-        FireworkMeta meta = fw.getFireworkMeta();
-        meta.addEffect(
-                FireworkEffect.builder()
-                        .with(FireworkEffect.Type.BURST)
-                        .withColor(colorForJob(type))
-                        .withFlicker()
-                        .build()
-        );
-        meta.setPower(0);
-        fw.setFireworkMeta(meta);
-        fw.detonate();
+        Particle.DustOptions dust = new Particle.DustOptions(colorForJob(type), 1.8f);
+        player.getWorld().spawnParticle(Particle.FIREWORKS_SPARK, loc, 45, 0.8, 0.5, 0.8, 0.02);
+        player.getWorld().spawnParticle(Particle.REDSTONE, loc, 30, 0.7, 0.5, 0.7, dust);
     }
 
     private Color colorForJob(JobType jobType) {

@@ -31,7 +31,7 @@ public class ConfigManager {
     }
 
     public double getUpgradeCost(JobType type, String upgradeKey) {
-        return config.getDouble("jobs." + type.key() + ".upgrade_costs." + upgradeKey, Double.MAX_VALUE);
+        return config.getDouble("jobs." + type.key() + ".upgrade_costs." + upgradeKey, -1.0D);
     }
 
     public int getRegrowthSeconds(JobType type) {

@@ -11,34 +11,21 @@ import com.avertox.jobsystem.tools.JobToolService;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.Ageable;
 import org.bukkit.entity.Player;
-import org.bukkit.entity.TNTPrimed;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.block.Action;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ThreadLocalRandom;
 
 public class FarmerListener implements Listener {
-    private static final List<Material> RANDOM_CROPS = List.of(
-            Material.WHEAT,
-            Material.CARROTS,
-            Material.POTATOES,
-            Material.BEETROOTS
-    );
-
     private final JavaPlugin plugin;
     private final JobManager jobManager;
     private final ConfigManager configManager;
@@ -70,6 +57,10 @@ public class FarmerListener implements Listener {
             return;
         }
         Player player = event.getPlayer();
+        if (!jobManager.isActiveJob(player.getUniqueId(), JobType.FARMER)) {
+            return;
+        }
+
         PlayerJobData data = jobManager.getOrCreate(player.getUniqueId(), JobType.FARMER);
         if (!toolService.hasUsableTool(player, JobType.FARMER)) {
             if (toolService.hasOwnedToolInInventory(player, JobType.FARMER)) {
@@ -80,69 +71,69 @@ public class FarmerListener implements Listener {
             }
             return;
         }
+
         if (placedBlockTracker.consumeIfPlaced(block.getLocation())) {
             return;
         }
+
+        event.setDropItems(false);
+        ItemStack hand = player.getInventory().getItemInMainHand();
+        for (ItemStack drop : block.getDrops(hand, player)) {
+            player.getInventory().addItem(drop);
+        }
+
         player.playSound(block.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 0.8f, 1.25f);
         int toolTier = toolService.getHeldTier(player, JobType.FARMER);
-        double xp = configManager.getReward(JobType.FARMER, "crop_xp") * (1.0D + toolTier * 0.10D);
-        double money = configManager.getReward(JobType.FARMER, "crop_money") * (1.0D + toolTier * 0.12D);
-        jobManager.addProgress(
-                player,
-                JobType.FARMER,
-                xp,
-                money
-        );
+        // Reduced farmer progression rate.
+        double xp = configManager.getReward(JobType.FARMER, "crop_xp") * (0.35D + toolTier * 0.03D);
+        double money = configManager.getReward(JobType.FARMER, "crop_money") * (0.30D + toolTier * 0.035D);
+        jobManager.addProgress(player, JobType.FARMER, xp, money);
 
         if (farmerJob.hasTntAutoHarvest(data.getLevel()) && Math.random() < configManager.getTntAutoHarvestChance()) {
-            TNTPrimed tnt = block.getWorld().spawn(block.getLocation().add(0.5, 0.0, 0.5), TNTPrimed.class);
-            tnt.setFuseTicks(20);
-            tnt.setYield(0);
+            runTntHarvestBurst(player, block.getLocation(), data.getLevel(), hand);
         }
 
         scheduleRegrowth(block.getLocation(), block.getType(), data.getLevel());
     }
 
-    @EventHandler
-    public void onHoeHitFarmland(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) {
-            return;
-        }
-        if (event.getAction() != Action.LEFT_CLICK_BLOCK && event.getAction() != Action.RIGHT_CLICK_BLOCK) {
-            return;
-        }
-        Block clicked = event.getClickedBlock();
-        if (clicked == null || clicked.getType() != Material.FARMLAND) {
-            return;
-        }
+    private void runTntHarvestBurst(Player player, Location center, int level, ItemStack tool) {
+        center.getWorld().spawnParticle(Particle.EXPLOSION_NORMAL, center.clone().add(0.5, 0.5, 0.5), 18, 1.2, 0.6, 1.2, 0.02);
+        player.playSound(center, Sound.ENTITY_GENERIC_EXPLODE, 0.7f, 1.35f);
 
-        Player player = event.getPlayer();
-        if (!toolService.hasUsableTool(player, JobType.FARMER)) {
-            return;
+        int harvested = 0;
+        for (int x = -3; x <= 3; x++) {
+            for (int y = -1; y <= 1; y++) {
+                for (int z = -3; z <= 3; z++) {
+                    Location loc = center.clone().add(x, y, z);
+                    if (loc.distanceSquared(center) > 9.0D) {
+                        continue;
+                    }
+                    Block b = loc.getBlock();
+                    if (!JobMaterials.CROPS.contains(b.getType())) {
+                        continue;
+                    }
+                    if (placedBlockTracker.consumeIfPlaced(loc)) {
+                        continue;
+                    }
+                    Material cropType = b.getType();
+                    for (ItemStack drop : b.getDrops(tool, player)) {
+                        player.getInventory().addItem(drop);
+                    }
+                    b.setType(Material.AIR, false);
+                    scheduleRegrowth(loc, cropType, level);
+                    harvested++;
+                }
+            }
         }
-
-        ItemStack hand = player.getInventory().getItemInMainHand();
-        if (!hand.getType().name().endsWith("_HOE")) {
-            return;
+        if (harvested > 0) {
+            double bonusMoney = harvested * configManager.getReward(JobType.FARMER, "crop_money") * 0.25D;
+            jobManager.addProgress(player, JobType.FARMER, 0.0D, bonusMoney);
+            player.sendMessage("§6TNT Harvest: +" + harvested + " crops.");
         }
-
-        Block cropBlock = clicked.getRelative(BlockFace.UP);
-        if (cropBlock.getType() != Material.AIR) {
-            return;
-        }
-
-        Material crop = RANDOM_CROPS.get(ThreadLocalRandom.current().nextInt(RANDOM_CROPS.size()));
-        cropBlock.setType(crop, false);
-        if (cropBlock.getBlockData() instanceof Ageable ageable) {
-            ageable.setAge(ageable.getMaximumAge());
-            cropBlock.setBlockData(ageable, false);
-        }
-        player.playSound(cropBlock.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 0.8f, 1.4f);
-        event.setCancelled(true);
     }
 
     private void scheduleRegrowth(Location location, Material cropType, int level) {
-        String key = location.toVector().toString() + "|" + location.getWorld().getName();
+        String key = location.toVector() + "|" + location.getWorld().getName();
         if (!regrowing.add(key)) {
             return;
         }

@@ -58,6 +58,9 @@ public class MinerListener implements Listener {
         }
 
         Player player = event.getPlayer();
+        if (!jobManager.isActiveJob(player.getUniqueId(), JobType.MINER)) {
+            return;
+        }
         PlayerJobData data = jobManager.getOrCreate(player.getUniqueId(), JobType.MINER);
         if (!toolService.hasUsableTool(player, JobType.MINER)) {
             if (toolService.hasOwnedToolInInventory(player, JobType.MINER)) {
