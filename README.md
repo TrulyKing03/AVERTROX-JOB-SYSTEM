@@ -6,6 +6,7 @@ Minecraft job progression plugin (Spigot 1.20.4 API) with:
 - Active-job system (one job at a time, switch cooldown)
 - Vault economy payouts and upgrade spending
 - Owner-bound tiered job tools (stone start -> higher tiers)
+- Admin testing panel (`/jobsadmin`) for live progression controls
 - MySQL persistence
 - Automation blocks with passive generation
 - Job-locked recipe unlocks and craft restrictions
@@ -62,6 +63,26 @@ Config includes:
   - retrieve/reforge current tier tool
 - `/jobs recipes <job>`  
   Opens Recipe Unlock Menu for a job.
+- `/jobsadmin` or `/jobsadmin <player>`  
+  Opens admin GUI controls (op or `avertoxjobs.admin` permission required).
+
+## Admin GUI
+
+The admin panel is designed for fast testing and balancing in-game.
+
+- Player selection GUI
+- Per-job context switching (Farmer/Fisher/Woodcutter/Miner)
+- Give/take XP
+- Give/take levels
+- Give/take money + update plugin progress money
+- Increase/decrease tool tier
+- Reforge/give current bound tool
+- Force active job
+- Clear job switch cooldown
+- Reset selected job progress (xp/level/money/upgrades/recipes/tool tier)
+
+Permission:
+- `avertoxjobs.admin` (default: op)
 
 ## Active Job Rules
 
