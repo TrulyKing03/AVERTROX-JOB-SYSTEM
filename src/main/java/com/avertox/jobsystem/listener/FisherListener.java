@@ -6,12 +6,15 @@ import com.avertox.jobsystem.jobs.JobManager;
 import com.avertox.jobsystem.model.JobType;
 import com.avertox.jobsystem.model.PlayerJobData;
 import org.bukkit.Material;
+import org.bukkit.entity.FishHook;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerFishEvent;
+import org.bukkit.event.player.PlayerItemDamageEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,22 +33,36 @@ public class FisherListener implements Listener {
 
     @EventHandler
     public void onFish(PlayerFishEvent event) {
+        Player player = event.getPlayer();
+        PlayerJobData data = jobManager.getOrCreate(player.getUniqueId(), JobType.FISHER);
+        int level = data.getLevel();
+
+        if (event.getState() == PlayerFishEvent.State.FISHING && fisherJob.fasterReeling(level)) {
+            FishHook hook = event.getHook();
+            if (hook != null) {
+                hook.setMinWaitTime(20);
+                hook.setMaxWaitTime(80);
+            }
+            return;
+        }
+
         if (event.getState() != PlayerFishEvent.State.CAUGHT_FISH) {
             return;
         }
         if (!(event.getCaught() instanceof Item item)) {
             return;
         }
-        Player player = event.getPlayer();
-        PlayerJobData data = jobManager.getOrCreate(player.getUniqueId(), JobType.FISHER);
 
         double xp = configManager.getReward(JobType.FISHER, "catch_xp");
         double money = configManager.getReward(JobType.FISHER, "catch_money");
-        if (fisherJob.fasterReeling(data.getLevel())) {
-            xp += 2;
+
+        // Level 4+: improved rod efficiency and rare fish chance.
+        if (fisherJob.hasImprovedRod(level)) {
+            xp += 1;
+            money += 1;
         }
 
-        String rarity = rollRarity(configManager.getFishRarityRates(), data.getLevel());
+        String rarity = rollRarity(configManager.getFishRarityRates(), level);
         if ("legendary".equals(rarity)) {
             xp += 8;
             money += 12;
@@ -56,11 +73,45 @@ public class FisherListener implements Listener {
             xp += 2;
             money += 3;
         }
-        if (fisherJob.unlocksNewFishTypes(data.getLevel()) && "rare".equals(rarity)) {
-            item.setItemStack(new ItemStack(Material.SALMON, 2));
+
+        // Level 6+: new fish types with higher value.
+        if (fisherJob.unlocksNewFishTypes(level)) {
+            if ("rare".equals(rarity)) {
+                item.setItemStack(new ItemStack(Material.SALMON, 2));
+                money += 4;
+            } else if ("epic".equals(rarity)) {
+                item.setItemStack(new ItemStack(Material.PUFFERFISH, 2));
+                money += 8;
+            } else if ("legendary".equals(rarity)) {
+                item.setItemStack(new ItemStack(Material.TROPICAL_FISH, 3));
+                money += 14;
+            }
         }
+
+        // Level 8+: faster reeling and rare fish XP bonus.
+        if (fisherJob.fasterReeling(level) && ("rare".equals(rarity) || "epic".equals(rarity) || "legendary".equals(rarity))) {
+            xp += 3;
+        }
+
         jobManager.addProgress(player, JobType.FISHER, xp, money);
         player.sendMessage("§bFish rarity: " + rarity);
+    }
+
+    @EventHandler
+    public void onRodDamage(PlayerItemDamageEvent event) {
+        Player player = event.getPlayer();
+        PlayerJobData data = jobManager.getOrCreate(player.getUniqueId(), JobType.FISHER);
+        if (!fisherJob.hasImprovedRod(data.getLevel())) {
+            return;
+        }
+        PlayerInventory inventory = player.getInventory();
+        ItemStack mainHand = inventory.getItemInMainHand();
+        if (mainHand.getType() != Material.FISHING_ROD) {
+            return;
+        }
+        if (Math.random() < 0.45D) {
+            event.setCancelled(true);
+        }
     }
 
     private String rollRarity(Map<String, Object> rates, int level) {
@@ -77,7 +128,7 @@ public class FisherListener implements Listener {
         for (String key : keys) {
             double value = ((Number) rates.get(key)).doubleValue();
             if ("rare".equals(key) && level >= 4) {
-                value += 0.02;
+                value += 0.08;
             }
             running += value;
             if (random <= running) {

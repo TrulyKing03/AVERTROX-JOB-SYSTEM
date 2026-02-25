@@ -87,12 +87,22 @@ Player job data loads on join and saves on quit + autosave interval + shutdown.
   - TNT auto-harvest chance (configurable)
   - Level-gated speed/regrowth/automation hooks
 - Fisher:
-  - Catch tracking with rarity roll and configurable rates
-  - Level-based rarity and progression boosts
+  - Level 1-3: basic fishing income
+  - Level 4: improved rod efficiency (durability reduction) + boosted rare fish chance
+  - Level 6: unlock higher-value fish conversions (rare/epic/legendary outcomes)
+  - Level 8-9: faster reeling and rare/epic/legendary XP bonus
+  - Level 10: Auto-Fishing block unlock (`BARREL`)
 - Woodcutter:
-  - Log tracking and tree-felling unlock
+  - Level 1-4: standard chopping
+  - Level 5: tree-felling unlock (whole tree break)
+  - Level 6-10: chopping speed boost + reduced axe durability cost
+  - Level 10: Auto-Wood block unlock (`OAK_WOOD`)
 - Miner:
-  - Ore/stone tracking and vein-mining unlock
+  - Level 1-3: normal single-block mining
+  - Level 4: movement and mining speed boosts
+  - Level 5-7: pickaxe upgrade effects (extra rewards and bonus drop chance)
+  - Level 8-10: vein mining unlock (connected ore breaking)
+  - Level 10: Auto-Mining block unlock (`BLAST_FURNACE`)
 
 ## Notes
 

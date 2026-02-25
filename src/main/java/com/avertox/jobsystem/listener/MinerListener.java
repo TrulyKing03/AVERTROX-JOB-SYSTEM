@@ -13,9 +13,13 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 import java.util.ArrayDeque;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 public class MinerListener implements Listener {
@@ -34,29 +38,81 @@ public class MinerListener implements Listener {
         Block block = event.getBlock();
         Material material = block.getType();
         Player player = event.getPlayer();
+        PlayerJobData data = jobManager.getOrCreate(player.getUniqueId(), JobType.MINER);
+        int level = data.getLevel();
 
         if (JobMaterials.ORES.contains(material)) {
-            jobManager.addProgress(
-                    player,
-                    JobType.MINER,
-                    configManager.getReward(JobType.MINER, "ore_xp"),
-                    configManager.getReward(JobType.MINER, "ore_money")
-            );
-            PlayerJobData data = jobManager.getOrCreate(player.getUniqueId(), JobType.MINER);
-            if (minerJob.hasVeinMining(data.getLevel())) {
+            double xp = configManager.getReward(JobType.MINER, "ore_xp");
+            double money = configManager.getReward(JobType.MINER, "ore_money");
+
+            // Level 4+: movement and mining speed boosts.
+            if (minerJob.hasSpeedBoost(level)) {
+                player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 80, 0, true, false, false));
+                player.addPotionEffect(new PotionEffect(PotionEffectType.FAST_DIGGING, 80, 0, true, false, false));
+            }
+
+            // Levels 5-7+: pickaxe upgrades influence rewards and drop rate.
+            if (minerJob.hasPickaxeUpgrades(level)) {
+                int upgradeTier = getUpgradeTier(data.getUpgrades());
+                if (upgradeTier > 0) {
+                    xp += upgradeTier * 1.5D;
+                    money += upgradeTier * 2.0D;
+                    maybeDropBonusOre(block, material, upgradeTier);
+                }
+            }
+
+            jobManager.addProgress(player, JobType.MINER, xp, money);
+
+            // Levels 8-10: ore vein mining.
+            if (minerJob.hasVeinMining(level)) {
                 breakVein(block, material);
             }
             return;
         }
 
         if (material == Material.STONE || material == Material.DEEPSLATE) {
-            jobManager.addProgress(
-                    player,
-                    JobType.MINER,
-                    configManager.getReward(JobType.MINER, "stone_xp"),
-                    configManager.getReward(JobType.MINER, "stone_money")
-            );
+            double xp = configManager.getReward(JobType.MINER, "stone_xp");
+            double money = configManager.getReward(JobType.MINER, "stone_money");
+            if (minerJob.hasSpeedBoost(level)) {
+                player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 60, 0, true, false, false));
+                player.addPotionEffect(new PotionEffect(PotionEffectType.FAST_DIGGING, 60, 0, true, false, false));
+            }
+            jobManager.addProgress(player, JobType.MINER, xp, money);
         }
+    }
+
+    private void maybeDropBonusOre(Block block, Material ore, int upgradeTier) {
+        double chance = Math.min(0.40D, 0.10D + (upgradeTier * 0.08D));
+        if (Math.random() >= chance) {
+            return;
+        }
+        Material bonusMaterial = switch (ore) {
+            case COAL_ORE, DEEPSLATE_COAL_ORE -> Material.COAL;
+            case IRON_ORE, DEEPSLATE_IRON_ORE -> Material.RAW_IRON;
+            case COPPER_ORE, DEEPSLATE_COPPER_ORE -> Material.RAW_COPPER;
+            case GOLD_ORE, DEEPSLATE_GOLD_ORE -> Material.RAW_GOLD;
+            case REDSTONE_ORE, DEEPSLATE_REDSTONE_ORE -> Material.REDSTONE;
+            case LAPIS_ORE, DEEPSLATE_LAPIS_ORE -> Material.LAPIS_LAZULI;
+            case DIAMOND_ORE, DEEPSLATE_DIAMOND_ORE -> Material.DIAMOND;
+            case EMERALD_ORE, DEEPSLATE_EMERALD_ORE -> Material.EMERALD;
+            default -> null;
+        };
+        if (bonusMaterial != null) {
+            block.getWorld().dropItemNaturally(block.getLocation(), new ItemStack(bonusMaterial, 1));
+        }
+    }
+
+    private int getUpgradeTier(Map<String, Integer> upgrades) {
+        if (upgrades.getOrDefault("pickaxe_3", 0) > 0) {
+            return 3;
+        }
+        if (upgrades.getOrDefault("pickaxe_2", 0) > 0) {
+            return 2;
+        }
+        if (upgrades.getOrDefault("pickaxe_1", 0) > 0) {
+            return 1;
+        }
+        return 0;
     }
 
     private void breakVein(Block origin, Material ore) {

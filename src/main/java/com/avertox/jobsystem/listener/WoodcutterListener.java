@@ -13,6 +13,11 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.player.PlayerItemDamageEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 import java.util.ArrayDeque;
 import java.util.HashSet;
@@ -37,14 +42,45 @@ public class WoodcutterListener implements Listener {
         }
         Player player = event.getPlayer();
         PlayerJobData data = jobManager.getOrCreate(player.getUniqueId(), JobType.WOODCUTTER);
+        int level = data.getLevel();
+
+        // Levels 1-4: standard chopping.
         jobManager.addProgress(
                 player,
                 JobType.WOODCUTTER,
                 configManager.getReward(JobType.WOODCUTTER, "log_xp"),
                 configManager.getReward(JobType.WOODCUTTER, "log_money")
         );
-        if (woodcutterJob.hasTreeFelling(data.getLevel())) {
+
+        // Level 5: tree felling.
+        if (woodcutterJob.hasTreeFelling(level)) {
             fellTree(block);
+        }
+
+        // Levels 6-10: chopping speed boost.
+        if (woodcutterJob.improvedChoppingAndDurability(level)) {
+            player.addPotionEffect(new PotionEffect(PotionEffectType.FAST_DIGGING, 80, 0, true, false, false));
+        }
+    }
+
+    @EventHandler
+    public void onAxeDamage(PlayerItemDamageEvent event) {
+        Player player = event.getPlayer();
+        PlayerJobData data = jobManager.getOrCreate(player.getUniqueId(), JobType.WOODCUTTER);
+        int level = data.getLevel();
+        if (!woodcutterJob.improvedChoppingAndDurability(level)) {
+            return;
+        }
+        PlayerInventory inventory = player.getInventory();
+        ItemStack mainHand = inventory.getItemInMainHand();
+        String typeName = mainHand.getType().name();
+        if (!typeName.endsWith("_AXE")) {
+            return;
+        }
+        // Levels 6-10: durability reduction scaling.
+        double cancelChance = Math.min(0.65D, 0.25D + ((level - 6) * 0.08D));
+        if (Math.random() < cancelChance) {
+            event.setCancelled(true);
         }
     }
 
