@@ -7,3 +7,10 @@ commands:
   jobs:
     description: Open job menus
     usage: /jobs
+  jobsadmin:
+    description: Admin controls for job system
+    usage: /jobsadmin [player]
+permissions:
+  avertoxjobs.admin:
+    description: Access to job admin GUI
+    default: op

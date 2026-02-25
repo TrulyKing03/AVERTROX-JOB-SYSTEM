@@ -1,6 +1,7 @@
 package com.avertox.jobsystem;
 
 import com.avertox.jobsystem.automation.AutomationManager;
+import com.avertox.jobsystem.command.JobsAdminCommand;
 import com.avertox.jobsystem.command.JobsCommand;
 import com.avertox.jobsystem.config.ConfigManager;
 import com.avertox.jobsystem.data.MySqlManager;
@@ -114,15 +115,27 @@ public class AvertoxJobSystemPlugin extends JavaPlugin {
         PluginCommand command = getCommand("jobs");
         if (command == null) {
             getLogger().warning("Command /jobs is not defined in plugin.yml");
+        } else {
+            command.setExecutor(new JobsCommand(
+                    menuManager,
+                    jobManager,
+                    recipeManager,
+                    economyService,
+                    configManager,
+                    automationManager,
+                    toolService
+            ));
+        }
+
+        PluginCommand adminCommand = getCommand("jobsadmin");
+        if (adminCommand == null) {
+            getLogger().warning("Command /jobsadmin is not defined in plugin.yml");
             return;
         }
-        command.setExecutor(new JobsCommand(
+        adminCommand.setExecutor(new JobsAdminCommand(
                 menuManager,
                 jobManager,
-                recipeManager,
                 economyService,
-                configManager,
-                automationManager,
                 toolService
         ));
     }

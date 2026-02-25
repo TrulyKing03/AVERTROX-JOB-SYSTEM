@@ -40,8 +40,15 @@ public class PlayerJobData {
         return moneyEarned;
     }
 
+    public void setMoneyEarned(double moneyEarned) {
+        this.moneyEarned = Math.max(0.0D, moneyEarned);
+    }
+
     public void addMoneyEarned(double amount) {
         this.moneyEarned += amount;
+        if (this.moneyEarned < 0.0D) {
+            this.moneyEarned = 0.0D;
+        }
     }
 
     public Set<String> getUnlockedRecipes() {

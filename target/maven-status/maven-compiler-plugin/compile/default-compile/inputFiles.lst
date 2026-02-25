@@ -5,11 +5,14 @@ C:\Users\dumag\OneDrive\Desktop\AvertoxJobSystem\src\main\java\com\avertox\jobsy
 C:\Users\dumag\OneDrive\Desktop\AvertoxJobSystem\src\main\java\com\avertox\jobsystem\automation\AutoMineBlock.java
 C:\Users\dumag\OneDrive\Desktop\AvertoxJobSystem\src\main\java\com\avertox\jobsystem\automation\AutoWoodBlock.java
 C:\Users\dumag\OneDrive\Desktop\AvertoxJobSystem\src\main\java\com\avertox\jobsystem\AvertoxJobSystemPlugin.java
+C:\Users\dumag\OneDrive\Desktop\AvertoxJobSystem\src\main\java\com\avertox\jobsystem\command\JobsAdminCommand.java
 C:\Users\dumag\OneDrive\Desktop\AvertoxJobSystem\src\main\java\com\avertox\jobsystem\command\JobsCommand.java
 C:\Users\dumag\OneDrive\Desktop\AvertoxJobSystem\src\main\java\com\avertox\jobsystem\config\ConfigManager.java
 C:\Users\dumag\OneDrive\Desktop\AvertoxJobSystem\src\main\java\com\avertox\jobsystem\data\MySqlManager.java
 C:\Users\dumag\OneDrive\Desktop\AvertoxJobSystem\src\main\java\com\avertox\jobsystem\economy\EconomyService.java
 C:\Users\dumag\OneDrive\Desktop\AvertoxJobSystem\src\main\java\com\avertox\jobsystem\gui\BaseMenu.java
+C:\Users\dumag\OneDrive\Desktop\AvertoxJobSystem\src\main\java\com\avertox\jobsystem\gui\menu\admin\AdminPlayerManageMenu.java
+C:\Users\dumag\OneDrive\Desktop\AvertoxJobSystem\src\main\java\com\avertox\jobsystem\gui\menu\admin\AdminPlayerSelectMenu.java
 C:\Users\dumag\OneDrive\Desktop\AvertoxJobSystem\src\main\java\com\avertox\jobsystem\gui\menu\AutomationCollectionMenu.java
 C:\Users\dumag\OneDrive\Desktop\AvertoxJobSystem\src\main\java\com\avertox\jobsystem\gui\menu\JobOverviewMenu.java
 C:\Users\dumag\OneDrive\Desktop\AvertoxJobSystem\src\main\java\com\avertox\jobsystem\gui\menu\RecipeUnlockMenu.java

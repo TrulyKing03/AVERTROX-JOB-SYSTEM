@@ -112,6 +112,56 @@ public class JobManager {
         return new SwitchResult(true, 0L, false);
     }
 
+    public void forceActivateJob(UUID uuid, JobType target) {
+        activeJobs.put(uuid, target);
+        lastSwitchMillis.put(uuid, System.currentTimeMillis());
+    }
+
+    public void clearSwitchCooldown(UUID uuid) {
+        lastSwitchMillis.remove(uuid);
+    }
+
+    public long getRemainingSwitchCooldownMillis(UUID uuid) {
+        JobType active = activeJobs.get(uuid);
+        if (active == null) {
+            return 0L;
+        }
+        long last = lastSwitchMillis.getOrDefault(uuid, 0L);
+        long cooldown = TimeUnit.DAYS.toMillis(1);
+        long elapsed = System.currentTimeMillis() - last;
+        return Math.max(0L, cooldown - elapsed);
+    }
+
+    public void modifyXp(UUID uuid, JobType type, double delta) {
+        PlayerJobData data = getOrCreate(uuid, type);
+        double next = Math.max(0.0D, data.getXp() + delta);
+        data.setXp(next);
+        Job job = jobs.get(type);
+        if (job != null) {
+            data.setLevel(job.computeLevel(next));
+        }
+    }
+
+    public void modifyLevel(UUID uuid, JobType type, int delta) {
+        PlayerJobData data = getOrCreate(uuid, type);
+        int next = Math.max(1, data.getLevel() + delta);
+        data.setLevel(next);
+    }
+
+    public void modifyMoneyEarned(UUID uuid, JobType type, double delta) {
+        PlayerJobData data = getOrCreate(uuid, type);
+        data.setMoneyEarned(data.getMoneyEarned() + delta);
+    }
+
+    public void resetJobProgress(UUID uuid, JobType type) {
+        PlayerJobData data = getOrCreate(uuid, type);
+        data.setLevel(1);
+        data.setXp(0.0D);
+        data.setMoneyEarned(0.0D);
+        data.getUpgrades().clear();
+        data.getUnlockedRecipes().clear();
+    }
+
     public record SwitchResult(boolean success, long remainingMillis, boolean onCooldown) {
     }
 }
