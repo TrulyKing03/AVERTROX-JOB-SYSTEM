@@ -59,7 +59,8 @@ public class JobOverviewMenu implements BaseMenu {
             long remaining = result.remainingMillis();
             long hours = TimeUnit.MILLISECONDS.toHours(remaining);
             long minutes = TimeUnit.MILLISECONDS.toMinutes(remaining) % 60L;
-            player.sendMessage("§cYou can switch jobs again in " + hours + "h " + minutes + "m.");
+            JobType active = jobManager.getActiveJob(player.getUniqueId());
+            player.sendMessage("§cSwitch cooldown active. Current job: " + active + ". Retry in " + hours + "h " + minutes + "m.");
             return;
         }
         PlayerJobData data = jobManager.getOrCreate(player.getUniqueId(), target);

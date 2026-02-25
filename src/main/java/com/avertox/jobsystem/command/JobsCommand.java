@@ -50,6 +50,21 @@ public class JobsCommand implements CommandExecutor {
             menuManager.open(player, new JobOverviewMenu(jobManager, toolService));
             return true;
         }
+        if (args.length == 1) {
+            if (args[0].equalsIgnoreCase("upgrade") || args[0].equalsIgnoreCase("recipes")) {
+                JobType active = jobManager.getActiveJob(player.getUniqueId());
+                if (active == null) {
+                    player.sendMessage("§cNo active job selected. Use /jobs to pick one.");
+                    return true;
+                }
+                if (args[0].equalsIgnoreCase("upgrade")) {
+                    menuManager.open(player, new UpgradeAnvilMenu(active, jobManager, economyService, configManager, toolService));
+                    return true;
+                }
+                menuManager.open(player, new RecipeUnlockMenu(active, jobManager, recipeManager));
+                return true;
+            }
+        }
         if (args.length == 2) {
             JobType type;
             try {

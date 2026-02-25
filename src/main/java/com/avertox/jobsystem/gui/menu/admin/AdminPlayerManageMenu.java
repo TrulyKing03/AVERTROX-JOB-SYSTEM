@@ -73,7 +73,19 @@ public class AdminPlayerManageMenu implements BaseMenu {
             return;
         }
         if (slot == 10) {
-            selectedJob = nextJob(selectedJob);
+            selectedJob = JobType.FARMER;
+            return;
+        }
+        if (slot == 11) {
+            selectedJob = JobType.FISHER;
+            return;
+        }
+        if (slot == 12) {
+            selectedJob = JobType.WOODCUTTER;
+            return;
+        }
+        if (slot == 13) {
+            selectedJob = JobType.MINER;
             return;
         }
         if (slot == 49) {
@@ -130,9 +142,11 @@ public class AdminPlayerManageMenu implements BaseMenu {
         long h = TimeUnit.MILLISECONDS.toHours(cooldown);
         long m = TimeUnit.MILLISECONDS.toMinutes(cooldown) % 60L;
 
-        inventory.setItem(10, MenuUtil.item(Material.COMPASS, "§eSelected Job: §f" + selectedJob, List.of(
-                "§7Click to cycle job context"
-        )));
+        inventory.setItem(10, jobButton(JobType.FARMER, selectedJob == JobType.FARMER));
+        inventory.setItem(11, jobButton(JobType.FISHER, selectedJob == JobType.FISHER));
+        inventory.setItem(12, jobButton(JobType.WOODCUTTER, selectedJob == JobType.WOODCUTTER));
+        inventory.setItem(13, jobButton(JobType.MINER, selectedJob == JobType.MINER));
+
         inventory.setItem(20, MenuUtil.item(Material.EXPERIENCE_BOTTLE, "§bXP Control", List.of(
                 "§7Left: +100 XP",
                 "§7Right: -100 XP",
@@ -166,7 +180,7 @@ public class AdminPlayerManageMenu implements BaseMenu {
                 "§7Resets cooldown now"
         )));
         inventory.setItem(50, MenuUtil.item(Material.LODESTONE, "§eForce Active Job", List.of(
-                "§7Set active job to selected",
+                "§7Set active job to selected: §f" + selectedJob,
                 "§7Starts new cooldown timer"
         )));
         inventory.setItem(53, MenuUtil.item(Material.BARRIER, "§cReset Selected Job", List.of(
@@ -177,7 +191,8 @@ public class AdminPlayerManageMenu implements BaseMenu {
 
         inventory.setItem(4, MenuUtil.item(Material.PLAYER_HEAD, "§fTarget: §e" + target.getName(), List.of(
                 "§7Active Job: §f" + String.valueOf(jobManager.getActiveJob(targetUuid)),
-                "§7Selected Job Level: §f" + data.getLevel()
+                "§7Selected Job Level: §f" + data.getLevel(),
+                "§7Editing: §f" + selectedJob
         )));
     }
 
@@ -229,9 +244,15 @@ public class AdminPlayerManageMenu implements BaseMenu {
         admin.sendMessage("§aSet tool tier (" + selectedJob + ") to " + tier + " for " + target.getName());
     }
 
-    private JobType nextJob(JobType current) {
-        JobType[] values = JobType.values();
-        int idx = (current.ordinal() + 1) % values.length;
-        return values[idx];
+    private org.bukkit.inventory.ItemStack jobButton(JobType type, boolean selected) {
+        Material mat = switch (type) {
+            case FARMER -> Material.WHEAT;
+            case FISHER -> Material.FISHING_ROD;
+            case WOODCUTTER -> Material.IRON_AXE;
+            case MINER -> Material.IRON_PICKAXE;
+        };
+        return MenuUtil.item(mat, (selected ? "§a§l" : "§e") + type.name(), List.of(
+                selected ? "§aSelected context" : "§7Click to select context"
+        ));
     }
 }
