@@ -10,6 +10,7 @@ import com.avertox.jobsystem.tracker.PlacedBlockTracker;
 import com.avertox.jobsystem.tools.JobToolService;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -53,14 +54,21 @@ public class WoodcutterListener implements Listener {
             return;
         }
         Player player = event.getPlayer();
+        PlayerJobData data = jobManager.getOrCreate(player.getUniqueId(), JobType.WOODCUTTER);
         if (!toolService.hasUsableTool(player, JobType.WOODCUTTER)) {
+            if (toolService.hasOwnedToolInInventory(player, JobType.WOODCUTTER)) {
+                player.sendMessage("§eHold your WOODCUTTER bound tool in main hand to gain XP/money.");
+            } else {
+                toolService.grantCurrentTool(player, data, JobType.WOODCUTTER);
+                player.sendMessage("§aYou received your WOODCUTTER bound tool.");
+            }
             return;
         }
         if (placedBlockTracker.consumeIfPlaced(block.getLocation())) {
             return;
         }
+        player.playSound(block.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 0.8f, 1.0f);
         int toolTier = toolService.getHeldTier(player, JobType.WOODCUTTER);
-        PlayerJobData data = jobManager.getOrCreate(player.getUniqueId(), JobType.WOODCUTTER);
         int level = data.getLevel();
 
         // Levels 1-4: standard chopping.

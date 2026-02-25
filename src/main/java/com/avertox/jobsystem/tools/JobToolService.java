@@ -111,6 +111,16 @@ public class JobToolService {
         return isUsableBy(player, player.getInventory().getItemInMainHand(), type);
     }
 
+    public boolean hasOwnedToolInInventory(Player player, JobType type) {
+        PlayerInventory inv = player.getInventory();
+        for (ItemStack stack : inv.getContents()) {
+            if (isUsableBy(player, stack, type)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public int getHeldTier(Player player, JobType type) {
         ItemStack stack = player.getInventory().getItemInMainHand();
         if (!isUsableBy(player, stack, type)) {

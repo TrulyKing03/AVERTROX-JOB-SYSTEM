@@ -37,11 +37,17 @@ public class FisherListener implements Listener {
     @EventHandler
     public void onFish(PlayerFishEvent event) {
         Player player = event.getPlayer();
+        PlayerJobData data = jobManager.getOrCreate(player.getUniqueId(), JobType.FISHER);
         if (!toolService.hasUsableTool(player, JobType.FISHER)) {
+            if (toolService.hasOwnedToolInInventory(player, JobType.FISHER)) {
+                player.sendMessage("§eHold your FISHER bound tool in main hand to gain XP/money.");
+            } else {
+                toolService.grantCurrentTool(player, data, JobType.FISHER);
+                player.sendMessage("§aYou received your FISHER bound tool.");
+            }
             return;
         }
         int toolTier = toolService.getHeldTier(player, JobType.FISHER);
-        PlayerJobData data = jobManager.getOrCreate(player.getUniqueId(), JobType.FISHER);
         int level = data.getLevel();
 
         if (event.getState() == PlayerFishEvent.State.FISHING && fisherJob.fasterReeling(level)) {

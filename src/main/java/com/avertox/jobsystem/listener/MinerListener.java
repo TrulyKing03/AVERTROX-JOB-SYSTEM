@@ -10,6 +10,7 @@ import com.avertox.jobsystem.tracker.PlacedBlockTracker;
 import com.avertox.jobsystem.tools.JobToolService;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -50,17 +51,24 @@ public class MinerListener implements Listener {
         Block block = event.getBlock();
         Material material = block.getType();
         Player player = event.getPlayer();
+        PlayerJobData data = jobManager.getOrCreate(player.getUniqueId(), JobType.MINER);
         if (!toolService.hasUsableTool(player, JobType.MINER)) {
+            if (toolService.hasOwnedToolInInventory(player, JobType.MINER)) {
+                player.sendMessage("§eHold your MINER bound tool in main hand to gain XP/money.");
+            } else {
+                toolService.grantCurrentTool(player, data, JobType.MINER);
+                player.sendMessage("§aYou received your MINER bound tool.");
+            }
             return;
         }
         if (placedBlockTracker.consumeIfPlaced(block.getLocation())) {
             return;
         }
         int toolTier = toolService.getHeldTier(player, JobType.MINER);
-        PlayerJobData data = jobManager.getOrCreate(player.getUniqueId(), JobType.MINER);
         int level = data.getLevel();
 
         if (JobMaterials.ORES.contains(material)) {
+            player.playSound(block.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 0.85f, 0.85f);
             double xp = configManager.getReward(JobType.MINER, "ore_xp") * (1.0D + toolTier * 0.10D);
             double money = configManager.getReward(JobType.MINER, "ore_money") * (1.0D + toolTier * 0.13D);
 

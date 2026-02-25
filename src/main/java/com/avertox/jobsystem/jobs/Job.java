@@ -3,7 +3,13 @@ package com.avertox.jobsystem.jobs;
 import com.avertox.jobsystem.config.ConfigManager;
 import com.avertox.jobsystem.model.JobType;
 import com.avertox.jobsystem.model.PlayerJobData;
+import org.bukkit.Color;
+import org.bukkit.FireworkEffect;
+import org.bukkit.Location;
+import org.bukkit.Sound;
+import org.bukkit.entity.Firework;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.meta.FireworkMeta;
 
 import java.util.List;
 
@@ -53,5 +59,29 @@ public abstract class Job {
 
     protected void onLevelUp(Player player, int oldLevel, int newLevel) {
         player.sendMessage("§a" + type.name() + " leveled up: " + oldLevel + " -> " + newLevel);
+        player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 0.9f, 1.15f);
+
+        Location loc = player.getLocation().add(0.0, 1.0, 0.0);
+        Firework fw = player.getWorld().spawn(loc, Firework.class);
+        FireworkMeta meta = fw.getFireworkMeta();
+        meta.addEffect(
+                FireworkEffect.builder()
+                        .with(FireworkEffect.Type.BURST)
+                        .withColor(colorForJob(type))
+                        .withFlicker()
+                        .build()
+        );
+        meta.setPower(0);
+        fw.setFireworkMeta(meta);
+        fw.detonate();
+    }
+
+    private Color colorForJob(JobType jobType) {
+        return switch (jobType) {
+            case FARMER -> Color.LIME;
+            case FISHER -> Color.AQUA;
+            case WOODCUTTER -> Color.ORANGE;
+            case MINER -> Color.SILVER;
+        };
     }
 }

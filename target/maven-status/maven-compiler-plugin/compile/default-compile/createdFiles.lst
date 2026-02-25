@@ -7,6 +7,7 @@ com\avertox\jobsystem\jobs\MinerJob.class
 com\avertox\jobsystem\automation\AutomationManager.class
 com\avertox\jobsystem\gui\menu\JobOverviewMenu.class
 com\avertox\jobsystem\listener\WoodcutterListener.class
+com\avertox\jobsystem\jobs\Job$1.class
 com\avertox\jobsystem\jobs\JobManager.class
 com\avertox\jobsystem\listener\AutomationListener.class
 com\avertox\jobsystem\tools\JobToolService$1.class

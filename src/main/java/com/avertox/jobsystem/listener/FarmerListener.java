@@ -11,7 +11,9 @@ import com.avertox.jobsystem.tools.JobToolService;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.block.Block;
+import org.bukkit.block.data.Ageable;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TNTPrimed;
 import org.bukkit.event.EventHandler;
@@ -54,14 +56,21 @@ public class FarmerListener implements Listener {
             return;
         }
         Player player = event.getPlayer();
+        PlayerJobData data = jobManager.getOrCreate(player.getUniqueId(), JobType.FARMER);
         if (!toolService.hasUsableTool(player, JobType.FARMER)) {
+            if (toolService.hasOwnedToolInInventory(player, JobType.FARMER)) {
+                player.sendMessage("§eHold your FARMER bound tool in main hand to gain XP/money.");
+            } else {
+                toolService.grantCurrentTool(player, data, JobType.FARMER);
+                player.sendMessage("§aYou received your FARMER bound tool.");
+            }
             return;
         }
         if (placedBlockTracker.consumeIfPlaced(block.getLocation())) {
             return;
         }
+        player.playSound(block.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 0.8f, 1.25f);
         int toolTier = toolService.getHeldTier(player, JobType.FARMER);
-        PlayerJobData data = jobManager.getOrCreate(player.getUniqueId(), JobType.FARMER);
         double xp = configManager.getReward(JobType.FARMER, "crop_xp") * (1.0D + toolTier * 0.10D);
         double money = configManager.getReward(JobType.FARMER, "crop_money") * (1.0D + toolTier * 0.12D);
         jobManager.addProgress(
@@ -92,6 +101,10 @@ public class FarmerListener implements Listener {
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
             if (location.getBlock().getType() == Material.AIR) {
                 location.getBlock().setType(cropType);
+                if (location.getBlock().getBlockData() instanceof Ageable ageable) {
+                    ageable.setAge(ageable.getMaximumAge());
+                    location.getBlock().setBlockData(ageable, false);
+                }
             }
             regrowing.remove(key);
         }, seconds * 20L);
