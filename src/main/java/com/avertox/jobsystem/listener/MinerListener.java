@@ -6,6 +6,8 @@ import com.avertox.jobsystem.jobs.MinerJob;
 import com.avertox.jobsystem.listener.util.JobMaterials;
 import com.avertox.jobsystem.model.JobType;
 import com.avertox.jobsystem.model.PlayerJobData;
+import com.avertox.jobsystem.tracker.PlacedBlockTracker;
+import com.avertox.jobsystem.tools.JobToolService;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -26,11 +28,21 @@ public class MinerListener implements Listener {
     private final JobManager jobManager;
     private final ConfigManager configManager;
     private final MinerJob minerJob;
+    private final JobToolService toolService;
+    private final PlacedBlockTracker placedBlockTracker;
 
-    public MinerListener(JobManager jobManager, ConfigManager configManager, MinerJob minerJob) {
+    public MinerListener(
+            JobManager jobManager,
+            ConfigManager configManager,
+            MinerJob minerJob,
+            JobToolService toolService,
+            PlacedBlockTracker placedBlockTracker
+    ) {
         this.jobManager = jobManager;
         this.configManager = configManager;
         this.minerJob = minerJob;
+        this.toolService = toolService;
+        this.placedBlockTracker = placedBlockTracker;
     }
 
     @EventHandler
@@ -38,12 +50,19 @@ public class MinerListener implements Listener {
         Block block = event.getBlock();
         Material material = block.getType();
         Player player = event.getPlayer();
+        if (!toolService.hasUsableTool(player, JobType.MINER)) {
+            return;
+        }
+        if (placedBlockTracker.consumeIfPlaced(block.getLocation())) {
+            return;
+        }
+        int toolTier = toolService.getHeldTier(player, JobType.MINER);
         PlayerJobData data = jobManager.getOrCreate(player.getUniqueId(), JobType.MINER);
         int level = data.getLevel();
 
         if (JobMaterials.ORES.contains(material)) {
-            double xp = configManager.getReward(JobType.MINER, "ore_xp");
-            double money = configManager.getReward(JobType.MINER, "ore_money");
+            double xp = configManager.getReward(JobType.MINER, "ore_xp") * (1.0D + toolTier * 0.10D);
+            double money = configManager.getReward(JobType.MINER, "ore_money") * (1.0D + toolTier * 0.13D);
 
             // Level 4+: movement and mining speed boosts.
             if (minerJob.hasSpeedBoost(level)) {
@@ -57,7 +76,7 @@ public class MinerListener implements Listener {
                 if (upgradeTier > 0) {
                     xp += upgradeTier * 1.5D;
                     money += upgradeTier * 2.0D;
-                    maybeDropBonusOre(block, material, upgradeTier);
+                    maybeDropBonusOre(block, material, upgradeTier + (toolTier / 3));
                 }
             }
 

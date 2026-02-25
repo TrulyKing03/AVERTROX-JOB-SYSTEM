@@ -4,6 +4,7 @@ Minecraft job progression plugin (Spigot 1.20.4 API) with:
 - 4 jobs: Farmer, Fisher, Woodcutter, Miner
 - XP/level progression
 - Vault economy payouts and upgrade spending
+- Owner-bound tiered job tools (stone start -> higher tiers)
 - MySQL persistence
 - Automation blocks with passive generation
 - Job-locked recipe unlocks and craft restrictions
@@ -54,9 +55,26 @@ Config includes:
 - `/jobs`  
   Opens Job Overview Menu.
 - `/jobs upgrade <job>`  
-  Opens Upgrade/Anvil Menu for a job (`farmer`, `fisher`, `woodcutter`, `miner`).
+  Opens Upgrade/Anvil Menu for a job (`farmer`, `fisher`, `woodcutter`, `miner`) where players:
+  - upgrade bound tool tier
+  - preview perk changes
+  - retrieve/reforge current tier tool
 - `/jobs recipes <job>`  
   Opens Recipe Unlock Menu for a job.
+
+## Bound Tool Progression
+
+- Every job uses an owner-bound progression tool.
+- Tool progression starts at Stone tier and can be upgraded up to tier 10.
+- Tool hover shows:
+  - custom tier name
+  - tier number
+  - job class
+  - perk list (scales by tier)
+- Higher tiers scale rewards and performance significantly (speed, reward efficiency, job-specific bonuses).
+- Job actions require holding the correct bound tool for that job.
+- If the owner loses the tool (drop/death/break), tool tier resets back to Stone.
+- If another player picks up someone else's bound tool, it becomes a useless broken relic.
 
 ## Automation Blocks
 
@@ -86,23 +104,28 @@ Player job data loads on join and saves on quit + autosave interval + shutdown.
   - Crop detection, configurable regrowth timer
   - TNT auto-harvest chance (configurable)
   - Level-gated speed/regrowth/automation hooks
+  - Tool tier scales crop XP/money gain
 - Fisher:
   - Level 1-3: basic fishing income
   - Level 4: improved rod efficiency (durability reduction) + boosted rare fish chance
   - Level 6: unlock higher-value fish conversions (rare/epic/legendary outcomes)
   - Level 8-9: faster reeling and rare/epic/legendary XP bonus
   - Level 10: Auto-Fishing block unlock (`BARREL`)
+  - Tool tier scales catch rewards and rarity weighting
 - Woodcutter:
   - Level 1-4: standard chopping
   - Level 5: tree-felling unlock (whole tree break)
   - Level 6-10: chopping speed boost + reduced axe durability cost
   - Level 10: Auto-Wood block unlock (`OAK_WOOD`)
+  - Tool tier scales chopping rewards and durability efficiency
 - Miner:
   - Level 1-3: normal single-block mining
   - Level 4: movement and mining speed boosts
   - Level 5-7: pickaxe upgrade effects (extra rewards and bonus drop chance)
   - Level 8-10: vein mining unlock (connected ore breaking)
   - Level 10: Auto-Mining block unlock (`BLAST_FURNACE`)
+  - Money only from ore blocks (including nether ores)
+  - Tool tier scales ore rewards and bonus drop strength
 
 ## Notes
 

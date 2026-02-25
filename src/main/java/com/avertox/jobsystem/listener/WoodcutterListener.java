@@ -6,6 +6,8 @@ import com.avertox.jobsystem.jobs.WoodcutterJob;
 import com.avertox.jobsystem.listener.util.JobMaterials;
 import com.avertox.jobsystem.model.JobType;
 import com.avertox.jobsystem.model.PlayerJobData;
+import com.avertox.jobsystem.tracker.PlacedBlockTracker;
+import com.avertox.jobsystem.tools.JobToolService;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -27,11 +29,21 @@ public class WoodcutterListener implements Listener {
     private final JobManager jobManager;
     private final ConfigManager configManager;
     private final WoodcutterJob woodcutterJob;
+    private final JobToolService toolService;
+    private final PlacedBlockTracker placedBlockTracker;
 
-    public WoodcutterListener(JobManager jobManager, ConfigManager configManager, WoodcutterJob woodcutterJob) {
+    public WoodcutterListener(
+            JobManager jobManager,
+            ConfigManager configManager,
+            WoodcutterJob woodcutterJob,
+            JobToolService toolService,
+            PlacedBlockTracker placedBlockTracker
+    ) {
         this.jobManager = jobManager;
         this.configManager = configManager;
         this.woodcutterJob = woodcutterJob;
+        this.toolService = toolService;
+        this.placedBlockTracker = placedBlockTracker;
     }
 
     @EventHandler
@@ -41,15 +53,24 @@ public class WoodcutterListener implements Listener {
             return;
         }
         Player player = event.getPlayer();
+        if (!toolService.hasUsableTool(player, JobType.WOODCUTTER)) {
+            return;
+        }
+        if (placedBlockTracker.consumeIfPlaced(block.getLocation())) {
+            return;
+        }
+        int toolTier = toolService.getHeldTier(player, JobType.WOODCUTTER);
         PlayerJobData data = jobManager.getOrCreate(player.getUniqueId(), JobType.WOODCUTTER);
         int level = data.getLevel();
 
         // Levels 1-4: standard chopping.
+        double xp = configManager.getReward(JobType.WOODCUTTER, "log_xp") * (1.0D + toolTier * 0.10D);
+        double money = configManager.getReward(JobType.WOODCUTTER, "log_money") * (1.0D + toolTier * 0.12D);
         jobManager.addProgress(
                 player,
                 JobType.WOODCUTTER,
-                configManager.getReward(JobType.WOODCUTTER, "log_xp"),
-                configManager.getReward(JobType.WOODCUTTER, "log_money")
+                xp,
+                money
         );
 
         // Level 5: tree felling.
@@ -59,14 +80,19 @@ public class WoodcutterListener implements Listener {
 
         // Levels 6-10: chopping speed boost.
         if (woodcutterJob.improvedChoppingAndDurability(level)) {
-            player.addPotionEffect(new PotionEffect(PotionEffectType.FAST_DIGGING, 80, 0, true, false, false));
+            int amplifier = toolTier >= 8 ? 1 : 0;
+            player.addPotionEffect(new PotionEffect(PotionEffectType.FAST_DIGGING, 80, amplifier, true, false, false));
         }
     }
 
     @EventHandler
     public void onAxeDamage(PlayerItemDamageEvent event) {
         Player player = event.getPlayer();
+        if (!toolService.hasUsableTool(player, JobType.WOODCUTTER)) {
+            return;
+        }
         PlayerJobData data = jobManager.getOrCreate(player.getUniqueId(), JobType.WOODCUTTER);
+        int toolTier = toolService.getHeldTier(player, JobType.WOODCUTTER);
         int level = data.getLevel();
         if (!woodcutterJob.improvedChoppingAndDurability(level)) {
             return;
@@ -78,7 +104,7 @@ public class WoodcutterListener implements Listener {
             return;
         }
         // Levels 6-10: durability reduction scaling.
-        double cancelChance = Math.min(0.65D, 0.25D + ((level - 6) * 0.08D));
+        double cancelChance = Math.min(0.85D, 0.25D + ((level - 6) * 0.08D) + (toolTier * 0.03D));
         if (Math.random() < cancelChance) {
             event.setCancelled(true);
         }

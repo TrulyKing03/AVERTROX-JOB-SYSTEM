@@ -27,10 +27,14 @@ C:\Users\dumag\OneDrive\Desktop\AvertoxJobSystem\src\main\java\com\avertox\jobsy
 C:\Users\dumag\OneDrive\Desktop\AvertoxJobSystem\src\main\java\com\avertox\jobsystem\listener\FarmerListener.java
 C:\Users\dumag\OneDrive\Desktop\AvertoxJobSystem\src\main\java\com\avertox\jobsystem\listener\FisherListener.java
 C:\Users\dumag\OneDrive\Desktop\AvertoxJobSystem\src\main\java\com\avertox\jobsystem\listener\MinerListener.java
+C:\Users\dumag\OneDrive\Desktop\AvertoxJobSystem\src\main\java\com\avertox\jobsystem\listener\PlacedBlockListener.java
 C:\Users\dumag\OneDrive\Desktop\AvertoxJobSystem\src\main\java\com\avertox\jobsystem\listener\PlayerConnectionListener.java
+C:\Users\dumag\OneDrive\Desktop\AvertoxJobSystem\src\main\java\com\avertox\jobsystem\listener\ToolLossListener.java
 C:\Users\dumag\OneDrive\Desktop\AvertoxJobSystem\src\main\java\com\avertox\jobsystem\listener\util\JobMaterials.java
 C:\Users\dumag\OneDrive\Desktop\AvertoxJobSystem\src\main\java\com\avertox\jobsystem\listener\WoodcutterListener.java
 C:\Users\dumag\OneDrive\Desktop\AvertoxJobSystem\src\main\java\com\avertox\jobsystem\model\JobType.java
 C:\Users\dumag\OneDrive\Desktop\AvertoxJobSystem\src\main\java\com\avertox\jobsystem\model\PlayerJobData.java
 C:\Users\dumag\OneDrive\Desktop\AvertoxJobSystem\src\main\java\com\avertox\jobsystem\recipes\CustomCraftingManager.java
 C:\Users\dumag\OneDrive\Desktop\AvertoxJobSystem\src\main\java\com\avertox\jobsystem\recipes\RecipeManager.java
+C:\Users\dumag\OneDrive\Desktop\AvertoxJobSystem\src\main\java\com\avertox\jobsystem\tools\JobToolService.java
+C:\Users\dumag\OneDrive\Desktop\AvertoxJobSystem\src\main\java\com\avertox\jobsystem\tracker\PlacedBlockTracker.java

@@ -10,6 +10,7 @@ import com.avertox.jobsystem.model.JobType;
 import com.avertox.jobsystem.recipes.RecipeManager;
 import com.avertox.jobsystem.config.ConfigManager;
 import com.avertox.jobsystem.economy.EconomyService;
+import com.avertox.jobsystem.tools.JobToolService;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -21,6 +22,7 @@ public class JobsCommand implements CommandExecutor {
     private final RecipeManager recipeManager;
     private final EconomyService economyService;
     private final ConfigManager configManager;
+    private final JobToolService toolService;
 
     public JobsCommand(
             MenuManager menuManager,
@@ -28,13 +30,15 @@ public class JobsCommand implements CommandExecutor {
             RecipeManager recipeManager,
             EconomyService economyService,
             ConfigManager configManager,
-            AutomationManager automationManager
+            AutomationManager automationManager,
+            JobToolService toolService
     ) {
         this.menuManager = menuManager;
         this.jobManager = jobManager;
         this.recipeManager = recipeManager;
         this.economyService = economyService;
         this.configManager = configManager;
+        this.toolService = toolService;
     }
 
     @Override
@@ -55,7 +59,7 @@ public class JobsCommand implements CommandExecutor {
                 return true;
             }
             if (args[0].equalsIgnoreCase("upgrade")) {
-                menuManager.open(player, new UpgradeAnvilMenu(type, jobManager, economyService, configManager));
+                menuManager.open(player, new UpgradeAnvilMenu(type, jobManager, economyService, configManager, toolService));
                 return true;
             }
             if (args[0].equalsIgnoreCase("recipes")) {

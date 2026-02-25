@@ -5,6 +5,7 @@ import com.avertox.jobsystem.jobs.FisherJob;
 import com.avertox.jobsystem.jobs.JobManager;
 import com.avertox.jobsystem.model.JobType;
 import com.avertox.jobsystem.model.PlayerJobData;
+import com.avertox.jobsystem.tools.JobToolService;
 import org.bukkit.Material;
 import org.bukkit.entity.FishHook;
 import org.bukkit.entity.Item;
@@ -24,16 +25,22 @@ public class FisherListener implements Listener {
     private final JobManager jobManager;
     private final ConfigManager configManager;
     private final FisherJob fisherJob;
+    private final JobToolService toolService;
 
-    public FisherListener(JobManager jobManager, ConfigManager configManager, FisherJob fisherJob) {
+    public FisherListener(JobManager jobManager, ConfigManager configManager, FisherJob fisherJob, JobToolService toolService) {
         this.jobManager = jobManager;
         this.configManager = configManager;
         this.fisherJob = fisherJob;
+        this.toolService = toolService;
     }
 
     @EventHandler
     public void onFish(PlayerFishEvent event) {
         Player player = event.getPlayer();
+        if (!toolService.hasUsableTool(player, JobType.FISHER)) {
+            return;
+        }
+        int toolTier = toolService.getHeldTier(player, JobType.FISHER);
         PlayerJobData data = jobManager.getOrCreate(player.getUniqueId(), JobType.FISHER);
         int level = data.getLevel();
 
@@ -53,8 +60,8 @@ public class FisherListener implements Listener {
             return;
         }
 
-        double xp = configManager.getReward(JobType.FISHER, "catch_xp");
-        double money = configManager.getReward(JobType.FISHER, "catch_money");
+        double xp = configManager.getReward(JobType.FISHER, "catch_xp") * (1.0D + toolTier * 0.10D);
+        double money = configManager.getReward(JobType.FISHER, "catch_money") * (1.0D + toolTier * 0.12D);
 
         // Level 4+: improved rod efficiency and rare fish chance.
         if (fisherJob.hasImprovedRod(level)) {
@@ -62,7 +69,7 @@ public class FisherListener implements Listener {
             money += 1;
         }
 
-        String rarity = rollRarity(configManager.getFishRarityRates(), level);
+        String rarity = rollRarity(configManager.getFishRarityRates(), level, toolTier);
         if ("legendary".equals(rarity)) {
             xp += 8;
             money += 12;
@@ -100,6 +107,9 @@ public class FisherListener implements Listener {
     @EventHandler
     public void onRodDamage(PlayerItemDamageEvent event) {
         Player player = event.getPlayer();
+        if (!toolService.hasUsableTool(player, JobType.FISHER)) {
+            return;
+        }
         PlayerJobData data = jobManager.getOrCreate(player.getUniqueId(), JobType.FISHER);
         if (!fisherJob.hasImprovedRod(data.getLevel())) {
             return;
@@ -114,7 +124,7 @@ public class FisherListener implements Listener {
         }
     }
 
-    private String rollRarity(Map<String, Object> rates, int level) {
+    private String rollRarity(Map<String, Object> rates, int level, int toolTier) {
         List<String> keys = new ArrayList<>(rates.keySet());
         if (keys.isEmpty()) {
             return "common";
@@ -129,6 +139,15 @@ public class FisherListener implements Listener {
             double value = ((Number) rates.get(key)).doubleValue();
             if ("rare".equals(key) && level >= 4) {
                 value += 0.08;
+            }
+            if ("rare".equals(key)) {
+                value += toolTier * 0.01D;
+            }
+            if ("epic".equals(key)) {
+                value += toolTier * 0.004D;
+            }
+            if ("legendary".equals(key)) {
+                value += toolTier * 0.002D;
             }
             running += value;
             if (random <= running) {
