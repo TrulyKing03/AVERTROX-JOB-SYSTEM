@@ -172,6 +172,157 @@ Player job data loads on join and saves on quit + autosave interval + shutdown.
 - Plays a short achievement-style sound.
 - Shows particle-based celebration burst (non-damaging).
 
+## Progression Deep Dive
+
+This section explains how the full progression loop works in practice, from choosing a job to endgame relic tiers.
+
+### 1) Core Loop
+
+The plugin progression loop is:
+
+1. Choose or switch active job in `/jobs`.
+2. Receive the bound relic/tool for that job.
+3. Perform job-specific actions (harvest, fish, chop, mine).
+4. Gain XP and money for that job.
+5. Level up that job and unlock stronger effects.
+6. Upgrade relic tier in the forge menu (`/jobs upgrade <job>` or `/jobs upgrade` for active job).
+7. Repeat for higher tiers and higher levels.
+
+### 2) Active Job System
+
+- A player can only have one active job at a time.
+- You pick active job from the Job Overview menu.
+- Switching to a different job starts a cooldown (24 hours).
+- You can still view progress for all jobs, and previously earned XP is kept.
+- Cooldown affects switching only, not earning within your current active job.
+
+Practical result:
+- You can specialize for a day, then switch next day, without losing prior grind.
+
+### 3) Job XP and Levels
+
+- Each job stores its own `level` and `xp`.
+- XP thresholds are config-driven per job.
+- When XP crosses the next threshold:
+  - Level increases.
+  - Level-up celebration triggers (sound + safe visual burst).
+  - New mechanics can unlock (depending on job level design).
+
+Important:
+- Levels are per-job. Farmer level does not increase Miner level.
+
+### 4) Relics / Bound Tools
+
+Each job uses a bound relic tool:
+
+- Farmer relic (hoe progression)
+- Fisher relic (rod progression)
+- Woodcutter relic (axe progression)
+- Miner relic (pickaxe progression)
+
+Properties:
+- Owner-bound (locked to that player).
+- Job-bound (a miner relic does not work for farmer progression).
+- Tiered from early material stages into high-end stages.
+- Name/lore are mythic-themed and evolve each tier.
+- Perk text is shown directly in item hover lore.
+
+If lost:
+- Losing a bound relic (drop/death/break) resets that relic tier to Stone baseline.
+- Player can reforge/retrieve from the forge menu.
+
+If stolen:
+- Other players cannot use it for progression.
+- Non-owner interaction turns it into a useless relic state.
+
+### 5) Relic Tier Upgrades
+
+Relic tiers are independent from base job level, but gated by level:
+
+- You can only upgrade to next relic tier if your job level is high enough for that tier.
+- Upgrade cost is economy-based and scales by tier.
+- Upgrading:
+  - Increases relic tier.
+  - Reforges a new version of the relic with upgraded identity/perks.
+  - Updates effective progression strength multipliers.
+
+Upgrade menu intent:
+- Tier progression is not cosmetic only; it materially increases performance and earnings.
+
+### 6) Money and Reward Behavior
+
+Money and XP are produced from actual job actions while active.
+
+Examples:
+- Farmer: crop actions (with farmer-specific balancing multipliers).
+- Fisher: catches, rarity outcomes, and special fish bonuses.
+- Woodcutter: valid log interactions.
+- Miner: ore-focused economy (not general stone economy for money).
+
+Key balancing points:
+- Some jobs use stronger multipliers at higher tiers.
+- Job-specific modifiers stack with tier effects and level unlocks.
+- Economy scaling is influenced by config multiplier settings.
+
+### 7) Anti-Exploit Rules
+
+To prevent farmable loops:
+
+- Player-placed crops/logs/ores/stones are tracked.
+- Breaking those tracked blocks does not grant XP/money.
+- This blocks place-break-repeat abuse.
+
+Design goal:
+- Reward real gameplay progression, not synthetic block loops.
+
+### 8) Farmer-Specific Progression Notes
+
+Current farmer behavior includes:
+
+- Reduced baseline XP/money rate for economy stability.
+- Crop outputs go straight to inventory.
+- Regrowth returns mature crops.
+- Right-click crop generation is disabled (to avoid infinite generation abuse).
+- TNT harvest mechanic:
+  - 3-block radius crop clear,
+  - drops sent to inventory,
+  - bonus money awarded.
+
+### 9) Fisher-Specific Progression Notes
+
+Current fisher behavior includes:
+
+- Shorter wait windows as progression improves.
+- Better visual/audio feedback while fishing.
+- Rarity-weighted catches.
+- Special fish chance for extra money events.
+- Relic tiers improve fishing output and catch quality potential.
+
+### 10) Admin Testing Controls (How It Maps to Progression)
+
+The admin GUI is intentionally comprehensive for balancing:
+
+- XP/level edits per selected job
+- Money/progress edits
+- Tool tier edits
+- Force active job
+- Cooldown clear
+- Full selected-job reset
+
+This allows tuning the full progression lifecycle quickly without code changes.
+
+### 11) Practical Player Journey (Example)
+
+1. Player clicks Miner in `/jobs`.
+2. Miner becomes active; miner relic is granted.
+3. Player mines valid miner targets and earns Miner XP/money.
+4. Miner level rises; tier upgrade unlocks.
+5. Player opens forge and upgrades relic to next tier.
+6. Relic name/material/perks improve; mining output increases.
+7. Player later switches to Fisher (after cooldown), keeping Miner progress.
+
+This is the intended long-term progression cadence.
+
 ## Notes
 
 - Vault economy integration is hooked at runtime (no compile-time Vault API dependency).
