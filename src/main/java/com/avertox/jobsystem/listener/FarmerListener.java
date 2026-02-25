@@ -13,18 +13,32 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.Ageable;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TNTPrimed;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class FarmerListener implements Listener {
+    private static final List<Material> RANDOM_CROPS = List.of(
+            Material.WHEAT,
+            Material.CARROTS,
+            Material.POTATOES,
+            Material.BEETROOTS
+    );
+
     private final JavaPlugin plugin;
     private final JobManager jobManager;
     private final ConfigManager configManager;
@@ -87,6 +101,44 @@ public class FarmerListener implements Listener {
         }
 
         scheduleRegrowth(block.getLocation(), block.getType(), data.getLevel());
+    }
+
+    @EventHandler
+    public void onHoeHitFarmland(PlayerInteractEvent event) {
+        if (event.getHand() != EquipmentSlot.HAND) {
+            return;
+        }
+        if (event.getAction() != Action.LEFT_CLICK_BLOCK && event.getAction() != Action.RIGHT_CLICK_BLOCK) {
+            return;
+        }
+        Block clicked = event.getClickedBlock();
+        if (clicked == null || clicked.getType() != Material.FARMLAND) {
+            return;
+        }
+
+        Player player = event.getPlayer();
+        if (!toolService.hasUsableTool(player, JobType.FARMER)) {
+            return;
+        }
+
+        ItemStack hand = player.getInventory().getItemInMainHand();
+        if (!hand.getType().name().endsWith("_HOE")) {
+            return;
+        }
+
+        Block cropBlock = clicked.getRelative(BlockFace.UP);
+        if (cropBlock.getType() != Material.AIR) {
+            return;
+        }
+
+        Material crop = RANDOM_CROPS.get(ThreadLocalRandom.current().nextInt(RANDOM_CROPS.size()));
+        cropBlock.setType(crop, false);
+        if (cropBlock.getBlockData() instanceof Ageable ageable) {
+            ageable.setAge(ageable.getMaximumAge());
+            cropBlock.setBlockData(ageable, false);
+        }
+        player.playSound(cropBlock.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 0.8f, 1.4f);
+        event.setCancelled(true);
     }
 
     private void scheduleRegrowth(Location location, Material cropType, int level) {
