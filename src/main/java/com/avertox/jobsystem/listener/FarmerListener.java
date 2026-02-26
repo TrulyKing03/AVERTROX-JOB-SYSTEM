@@ -78,9 +78,7 @@ public class FarmerListener implements Listener {
 
         event.setDropItems(false);
         ItemStack hand = player.getInventory().getItemInMainHand();
-        for (ItemStack drop : block.getDrops(hand, player)) {
-            player.getInventory().addItem(drop);
-        }
+        giveHarvestOnlyDrops(player, block, hand);
 
         player.playSound(block.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 0.8f, 1.25f);
         int toolTier = toolService.getHeldTier(player, JobType.FARMER);
@@ -115,9 +113,7 @@ public class FarmerListener implements Listener {
                         continue;
                     }
                     Material cropType = b.getType();
-                    for (ItemStack drop : b.getDrops(tool, player)) {
-                        player.getInventory().addItem(drop);
-                    }
+                    giveHarvestOnlyDrops(player, b, tool);
                     b.setType(Material.AIR, false);
                     scheduleRegrowth(loc, cropType, level);
                     harvested++;
@@ -150,5 +146,14 @@ public class FarmerListener implements Listener {
             }
             regrowing.remove(key);
         }, seconds * 20L);
+    }
+
+    private void giveHarvestOnlyDrops(Player player, Block crop, ItemStack tool) {
+        for (ItemStack drop : crop.getDrops(tool, player)) {
+            if (drop.getType().name().endsWith("_SEEDS")) {
+                continue;
+            }
+            player.getInventory().addItem(drop);
+        }
     }
 }
