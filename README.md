@@ -27,16 +27,16 @@ Players choose one active profession, grind XP and money through valid gameplay,
 
 | Type | Highlights |
 |------|-------------|
-| 🧭 **Job System** | 4 jobs: Farmer, Fisher, Woodcutter, Miner |
-| 📈 **Progression** | Per-job XP/level tracks with configurable thresholds |
+| 🧭 **Job System** | 5 jobs: Farmer, Fisher, Woodcutter, Miner, Hunter |
+| 📈 **Progression** | Per-job XP/level tracks with configurable thresholds + next-level progress UI (menu/actionbar) |
 | 🗿 **Relic Tools** | Owner-bound, tiered job tools with evolving perks |
-| 💰 **Economy** | Vault payouts and upgrade costs |
+| 💰 **Economy** | Vault payouts, upgrade costs, and sell-handler economy (`/jobs sell`) |
 | 🧪 **Admin Toolkit** | `/jobsadmin` GUI for complete progression testing |
-| 🤖 **Automation** | Per-job passive blocks at level 10 |
+| 🤖 **Automation** | Per-job passive blocks at level 10 with upgradeable slots/speed |
 | 📜 **Recipes** | Job-restricted unlockable crafting recipes |
 | 🛡️ **Anti-Exploit** | Blocks place-break farming loops |
 | 🗄️ **Persistence** | MySQL-backed player and automation data |
-| 🧰 **GUI Suite** | Overview, upgrade/anvil, recipes, and automation collection menus |
+| 🧰 **GUI Suite** | Overview, sell handler, upgrade/anvil, recipes, and automation collection menus |
 
 ---
 
@@ -84,8 +84,9 @@ Config includes:
 - Upgrade costs
 - Crop/ore regrowth timers
 - Fisher rarity rates
-- Automation limits and generation timers
+- Automation limits, generation timers, and automation upgrade scaling
 - XP/money rewards per action
+- Sell prices (`sell_prices`)
 
 ---
 
@@ -95,8 +96,12 @@ Config includes:
   - Opens Job Overview Menu
   - Click a job to learn/select active profession
 
+- `/jobs sell`
+  - Opens Job Handler sell menu
+  - Sell configured resources from inventory for Vault money
+
 - `/jobs upgrade <job>`
-  - Opens upgrade/anvil menu (`farmer`, `fisher`, `woodcutter`, `miner`)
+  - Opens upgrade/anvil menu (`farmer`, `fisher`, `woodcutter`, `miner`, `hunter`)
   - Upgrade relic tier, inspect perks, reforge/retrieve relic
 
 - `/jobs recipes <job>`
@@ -161,9 +166,11 @@ Unlocks at level 10+:
 - `BARREL` -> Auto-Fish
 - `OAK_WOOD` -> Auto-Wood
 - `BLAST_FURNACE` -> Auto-Mine
+- `TARGET` -> Auto-Hunt
 
 - Right-click owned block to collect resources
 - Per-job block limits are config-driven
+- Automation blocks can be upgraded for more slots and faster output
 
 ---
 
@@ -187,11 +194,11 @@ Data lifecycle:
 ## 📚 Job Progression Highlights
 
 ### 🌾 Farmer
-- Reduced XP/money baseline for economy balance
+- Reduced XP baseline for economy balance
 - Drops go directly to inventory
 - Regrowth returns fully grown crops
 - Right-click crop generation disabled
-- TNT auto-harvest in 3-block radius with money reward
+- TNT auto-harvest in 3-block radius with bonus XP
 - Relic tier scales farming rewards
 
 ### 🎣 Fisher
@@ -202,12 +209,14 @@ Data lifecycle:
 - Auto-Fishing unlock at level 10 (`BARREL`)
 - Better fishing feel (timing, particles, sounds)
 - Special fish bonus money events
+- Rarity message now matches fish outcome consistently
 
 ### 🪓 Woodcutter
 - Standard chopping early game
 - Tree-felling unlock mid progression
 - Higher speed + better durability efficiency at later levels
 - Auto-Wood unlock at level 10 (`OAK_WOOD`)
+- Earnings shifted toward sell-handler economy (XP still from chopping)
 
 ### ⛏️ Miner
 - Early normal mining progression
@@ -215,13 +224,20 @@ Data lifecycle:
 - Pickaxe upgrade effects in mid tiers
 - Vein mining at high levels
 - Auto-Mining unlock at level 10 (`BLAST_FURNACE`)
-- Money rewards only from ores (including nether ores)
+- Break-speed boost applies correctly during block damage
+- Earnings shifted toward sell-handler economy (XP still from mining)
+
+### 🏹 Hunter
+- New combat profession focused on entity kills
+- Streak-based combat scaling and utility perks
+- Hunter relic progression path (tiered bound weapon)
+- Hunter recipes, admin support, and automation (`TARGET`)
 
 ---
 
 ## 🛡️ Anti-Exploit
 
-- Tracks player-placed crops/logs/ores/stones
+- Tracks player-placed logs/ores/stones
 - Breaking tracked blocks gives no XP/money
 - Prevents place-break progression abuse
 
@@ -264,6 +280,7 @@ Typical causes:
 - relic not in main hand
 - player-placed block (anti-exploit)
 - action not valid for that job context
+- for block jobs, money is now primarily through `/jobs sell`
 
 ---
 
@@ -271,11 +288,12 @@ Typical causes:
 
 1. Choose active job in `/jobs`
 2. Receive/use matching relic
-3. Perform valid actions for XP + money
+3. Perform valid actions for XP + resources
 4. Level up and unlock stronger mechanics
 5. Upgrade relic tiers for stronger scaling
-6. Unlock recipes and craft better items
-7. Reach endgame automation and long-term progression loops
+6. Sell gathered materials in Job Handler for money
+7. Unlock recipes and craft better items
+8. Reach endgame automation and long-term progression loops
 
 ---
 
@@ -294,7 +312,7 @@ Each job has config-defined thresholds. On threshold reach, level increases and 
 Relic upgrades are level-gated and cost money. Tier affects identity, perks, and practical output scaling.
 
 ### 5) Reward Model
-Job actions produce XP/money based on job context, tier effects, and configured multipliers.
+Job actions produce XP/resources (and some direct payouts), while sell-handler flow drives most item-to-cash conversion.
 
 ### 6) Recipe Gating
 Level gives eligibility; menu unlock makes recipe permanently available for that player profile.
@@ -323,30 +341,4 @@ Email: **TrulyKingDevs@gmail.com**
 <p align="center">
   <sub><b>AvertoxJobSystem</b> • Designed and developed by TrulyKing03</sub>
 </p>
-
-
-
----
-
-## 🆕 Update (February 26, 2026)
-
-Added on top of the original README:
-
-- Progress UI improvements:
-  - Actionbar now shows job XP progress and XP remaining to next level.
-  - `/jobs` menu now shows next-level progress bars per job.
-- Jobs menu enhancement:
-  - Added a Sell Handler button directly in the jobs overview.
-- New Job Handler sell flow:
-  - Added `/jobs sell` menu to sell configured inventory items.
-  - Farmer/Woodcutter/Miner block-breaking now gives XP only (money from selling).
-- Automation upgrades:
-  - Automation vault now supports level upgrades.
-  - Upgrades increase storage slots and improve output speed.
-- Miner behavior fix:
-  - Mining speed effects now apply on block damage start (not only on break).
-- New Hunter job:
-  - Added Hunter progression, tool path, recipes, admin support, and automation.
-- Fisher rarity consistency fix:
-  - Fish rarity output now matches fish item results consistently.
 
