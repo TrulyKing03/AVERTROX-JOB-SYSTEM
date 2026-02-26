@@ -19,8 +19,9 @@ public class PlacedBlockListener implements Listener {
     public void onPlace(BlockPlaceEvent event) {
         Block block = event.getBlockPlaced();
         Material type = block.getType();
-        if (JobMaterials.CROPS.contains(type)
-                || JobMaterials.LOGS.contains(type)
+        // Farmer progression depends on player-planted crops, so crops are excluded
+        // from placed-block anti-exploit tracking.
+        if (JobMaterials.LOGS.contains(type)
                 || JobMaterials.ORES.contains(type)
                 || type == Material.STONE
                 || type == Material.DEEPSLATE) {
