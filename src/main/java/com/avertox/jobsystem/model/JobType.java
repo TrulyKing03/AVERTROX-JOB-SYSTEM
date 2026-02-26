@@ -4,7 +4,8 @@ public enum JobType {
     FARMER,
     FISHER,
     WOODCUTTER,
-    MINER;
+    MINER,
+    HUNTER;
 
     public String key() {
         return name().toLowerCase();

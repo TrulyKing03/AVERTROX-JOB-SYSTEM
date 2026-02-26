@@ -15,16 +15,22 @@ economy:
     high_level_threshold: 8
 
 automation:
+  max_level: 10
+  slot_base: 6
+  slot_per_level: 2
+  speed_upgrade_seconds: 2
   max_blocks_per_player:
     farmer: 3
     fisher: 3
     woodcutter: 3
     miner: 3
+    hunter: 3
   base_generation_seconds:
     farmer: 30
     fisher: 30
     woodcutter: 30
     miner: 30
+    hunter: 30
 
 jobs:
   farmer:
@@ -59,19 +65,63 @@ jobs:
       pickaxe_1: 500
       pickaxe_2: 1500
       pickaxe_3: 3200
+  hunter:
+    level_thresholds: [0, 90, 220, 390, 610, 900, 1260, 1700, 2230, 2860]
+    upgrade_costs:
+      blade_1: 600
+      blade_2: 1500
+      blade_3: 3300
 
 rewards:
   farmer:
     crop_xp: 8
-    crop_money: 6
+    crop_money: 0
   fisher:
     catch_xp: 10
     catch_money: 8
   woodcutter:
     log_xp: 7
-    log_money: 6
+    log_money: 0
   miner:
     ore_xp: 12
-    ore_money: 10
+    ore_money: 0
     stone_xp: 4
-    stone_money: 2
+    stone_money: 0
+  hunter:
+    kill_xp: 9
+    kill_money: 7
+
+sell_prices:
+  WHEAT: 2.0
+  CARROT: 2.0
+  POTATO: 2.0
+  BEETROOT: 2.0
+  NETHER_WART: 3.0
+  OAK_LOG: 2.5
+  BIRCH_LOG: 2.5
+  SPRUCE_LOG: 2.5
+  JUNGLE_LOG: 2.5
+  ACACIA_LOG: 2.5
+  DARK_OAK_LOG: 2.5
+  MANGROVE_LOG: 2.5
+  CHERRY_LOG: 2.5
+  CRIMSON_STEM: 2.5
+  WARPED_STEM: 2.5
+  COAL: 4.0
+  RAW_IRON: 8.0
+  RAW_COPPER: 5.0
+  RAW_GOLD: 10.0
+  REDSTONE: 3.0
+  LAPIS_LAZULI: 3.0
+  DIAMOND: 30.0
+  EMERALD: 26.0
+  QUARTZ: 4.0
+  COD: 4.0
+  SALMON: 6.0
+  PUFFERFISH: 10.0
+  TROPICAL_FISH: 18.0
+  ROTTEN_FLESH: 1.5
+  BONE: 2.0
+  STRING: 2.0
+  SPIDER_EYE: 2.5
+  ARROW: 1.5

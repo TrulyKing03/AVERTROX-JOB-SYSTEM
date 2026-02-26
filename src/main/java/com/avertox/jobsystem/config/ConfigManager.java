@@ -1,6 +1,7 @@
 package com.avertox.jobsystem.config;
 
 import com.avertox.jobsystem.model.JobType;
+import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -58,6 +59,10 @@ public class ConfigManager {
         return config.getDouble("rewards." + type.key() + "." + key, 0.0D);
     }
 
+    public double getSellPrice(Material material) {
+        return config.getDouble("sell_prices." + material.name(), -1.0D);
+    }
+
     public double getEconomyMultiplierDefault() {
         return config.getDouble("economy.multiplier.default", 1.0D);
     }
@@ -68,6 +73,26 @@ public class ConfigManager {
 
     public int getEconomyHighLevelThreshold() {
         return config.getInt("economy.multiplier.high_level_threshold", 8);
+    }
+
+    public int getAutomationMaxLevel() {
+        return config.getInt("automation.max_level", 10);
+    }
+
+    public int getAutomationSlotBase() {
+        return config.getInt("automation.slot_base", 6);
+    }
+
+    public int getAutomationSlotsPerLevel() {
+        return config.getInt("automation.slot_per_level", 2);
+    }
+
+    public int getAutomationSpeedUpgradeSeconds() {
+        return config.getInt("automation.speed_upgrade_seconds", 2);
+    }
+
+    public double getAutomationUpgradeCost(JobType type, int nextLevel) {
+        return config.getDouble("automation.upgrade_costs." + type.key() + "." + nextLevel, -1.0D);
     }
 
     public Map<String, Object> getFishRarityRates() {

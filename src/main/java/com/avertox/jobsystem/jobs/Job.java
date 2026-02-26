@@ -55,6 +55,53 @@ public abstract class Job {
         return base * multiplier;
     }
 
+    public ProgressSnapshot getProgress(PlayerJobData data) {
+        List<Integer> thresholds = configManager.getLevelThresholds(type);
+        if (thresholds.isEmpty()) {
+            return new ProgressSnapshot(
+                    data.getLevel(),
+                    1,
+                    data.getXp(),
+                    0.0D,
+                    0.0D,
+                    0.0D,
+                    true
+            );
+        }
+
+        int maxLevel = thresholds.size();
+        int currentLevel = Math.max(1, Math.min(data.getLevel(), maxLevel));
+        double currentXp = data.getXp();
+
+        if (currentLevel >= maxLevel) {
+            double cap = thresholds.get(maxLevel - 1);
+            return new ProgressSnapshot(
+                    currentLevel,
+                    maxLevel,
+                    currentXp,
+                    cap,
+                    0.0D,
+                    1.0D,
+                    true
+            );
+        }
+
+        double levelFloorXp = thresholds.get(currentLevel - 1);
+        double nextLevelXp = thresholds.get(currentLevel);
+        double span = Math.max(1.0D, nextLevelXp - levelFloorXp);
+        double progress = Math.max(0.0D, Math.min(1.0D, (currentXp - levelFloorXp) / span));
+        double xpToNext = Math.max(0.0D, nextLevelXp - currentXp);
+        return new ProgressSnapshot(
+                currentLevel,
+                maxLevel,
+                currentXp,
+                nextLevelXp,
+                xpToNext,
+                progress,
+                false
+        );
+    }
+
     protected void onLevelUp(Player player, int oldLevel, int newLevel) {
         player.sendMessage("§a" + type.name() + " leveled up: " + oldLevel + " -> " + newLevel);
         player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 0.9f, 1.15f);
@@ -71,6 +118,18 @@ public abstract class Job {
             case FISHER -> Color.AQUA;
             case WOODCUTTER -> Color.ORANGE;
             case MINER -> Color.SILVER;
+            case HUNTER -> Color.RED;
         };
+    }
+
+    public record ProgressSnapshot(
+            int level,
+            int maxLevel,
+            double currentXp,
+            double nextLevelXp,
+            double xpToNext,
+            double progressPercent,
+            boolean maxed
+    ) {
     }
 }

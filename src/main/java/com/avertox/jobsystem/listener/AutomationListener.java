@@ -2,6 +2,8 @@ package com.avertox.jobsystem.listener;
 
 import com.avertox.jobsystem.automation.AutomationBlock;
 import com.avertox.jobsystem.automation.AutomationManager;
+import com.avertox.jobsystem.config.ConfigManager;
+import com.avertox.jobsystem.economy.EconomyService;
 import com.avertox.jobsystem.gui.MenuManager;
 import com.avertox.jobsystem.gui.menu.AutomationCollectionMenu;
 import com.avertox.jobsystem.jobs.JobManager;
@@ -19,11 +21,21 @@ import org.bukkit.inventory.EquipmentSlot;
 public class AutomationListener implements Listener {
     private final JobManager jobManager;
     private final AutomationManager automationManager;
+    private final EconomyService economyService;
+    private final ConfigManager configManager;
     private final MenuManager menuManager;
 
-    public AutomationListener(JobManager jobManager, AutomationManager automationManager, MenuManager menuManager) {
+    public AutomationListener(
+            JobManager jobManager,
+            AutomationManager automationManager,
+            EconomyService economyService,
+            ConfigManager configManager,
+            MenuManager menuManager
+    ) {
         this.jobManager = jobManager;
         this.automationManager = automationManager;
+        this.economyService = economyService;
+        this.configManager = configManager;
         this.menuManager = menuManager;
     }
 
@@ -68,7 +80,7 @@ public class AutomationListener implements Listener {
             player.sendMessage("§cYou do not own this automation block.");
             return;
         }
-        menuManager.open(player, new AutomationCollectionMenu(automationManager, automationBlock));
+        menuManager.open(player, new AutomationCollectionMenu(automationManager, economyService, configManager, automationBlock));
         event.setCancelled(true);
     }
 
@@ -78,6 +90,7 @@ public class AutomationListener implements Listener {
             case BARREL -> JobType.FISHER;
             case OAK_WOOD -> JobType.WOODCUTTER;
             case BLAST_FURNACE -> JobType.MINER;
+            case TARGET -> JobType.HUNTER;
             default -> null;
         };
     }

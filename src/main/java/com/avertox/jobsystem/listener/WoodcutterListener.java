@@ -76,12 +76,11 @@ public class WoodcutterListener implements Listener {
 
         // Levels 1-4: standard chopping.
         double xp = configManager.getReward(JobType.WOODCUTTER, "log_xp") * (1.0D + toolTier * 0.10D);
-        double money = configManager.getReward(JobType.WOODCUTTER, "log_money") * (1.0D + toolTier * 0.12D);
         jobManager.addProgress(
                 player,
                 JobType.WOODCUTTER,
                 xp,
-                money
+                0.0D
         );
 
         // Level 5: tree felling.

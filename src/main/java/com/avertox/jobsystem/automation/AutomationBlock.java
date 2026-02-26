@@ -12,6 +12,8 @@ public abstract class AutomationBlock {
     private final JobType jobType;
     private final String locationKey;
     private int level;
+    private int slotBase = 6;
+    private int slotsPerLevel = 2;
     private final Map<Material, Integer> storage = new HashMap<>();
 
     protected AutomationBlock(UUID owner, JobType jobType, String locationKey, int level) {
@@ -49,7 +51,26 @@ public abstract class AutomationBlock {
         return 64 * Math.max(1, level);
     }
 
+    public int getSlotCapacity() {
+        return Math.max(1, slotBase + ((Math.max(1, level) - 1) * Math.max(0, slotsPerLevel)));
+    }
+
+    public int getUsedSlots() {
+        return storage.size();
+    }
+
+    public void configureSlots(int slotBase, int slotsPerLevel) {
+        this.slotBase = Math.max(1, slotBase);
+        this.slotsPerLevel = Math.max(0, slotsPerLevel);
+    }
+
     public void addResource(Material material, int amount) {
+        if (amount <= 0) {
+            return;
+        }
+        if (!storage.containsKey(material) && storage.size() >= getSlotCapacity()) {
+            return;
+        }
         int current = storage.values().stream().mapToInt(Integer::intValue).sum();
         if (current >= getCapacity()) {
             return;

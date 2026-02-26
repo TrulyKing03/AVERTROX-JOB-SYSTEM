@@ -26,6 +26,7 @@ public class CustomCraftingManager {
         registerFisherRecipes();
         registerWoodRecipes();
         registerMinerRecipes();
+        registerHunterRecipes();
     }
 
     public Map<NamespacedKey, RecipeRequirement> getRequirements() {
@@ -113,6 +114,27 @@ public class CustomCraftingManager {
                 List.of("Vein mining booster"),
                 "ODO", "DED", "ODO",
                 Map.of('O', Material.OBSIDIAN, 'D', Material.DIAMOND, 'E', Material.EMERALD)
+        );
+    }
+
+    private void registerHunterRecipes() {
+        registerSimple(
+                "tracker_bait",
+                JobType.HUNTER,
+                Material.RABBIT_STEW,
+                "Tracker Bait",
+                List.of("Hunter tracking reagent"),
+                " M ", "RBR", " M ",
+                Map.of('M', Material.ROTTEN_FLESH, 'R', Material.RABBIT, 'B', Material.BOWL)
+        );
+        registerSimple(
+                "predator_ration",
+                JobType.HUNTER,
+                Material.COOKED_BEEF,
+                "Predator Ration",
+                List.of("Hunting stamina ration"),
+                "BBB", "RCR", "BBB",
+                Map.of('B', Material.BEEF, 'R', Material.RABBIT, 'C', Material.COOKED_CHICKEN)
         );
     }
 

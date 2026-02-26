@@ -9,11 +9,13 @@ import com.avertox.jobsystem.economy.EconomyService;
 import com.avertox.jobsystem.gui.MenuManager;
 import com.avertox.jobsystem.jobs.FarmerJob;
 import com.avertox.jobsystem.jobs.FisherJob;
+import com.avertox.jobsystem.jobs.HunterJob;
 import com.avertox.jobsystem.jobs.JobManager;
 import com.avertox.jobsystem.jobs.MinerJob;
 import com.avertox.jobsystem.jobs.WoodcutterJob;
 import com.avertox.jobsystem.listener.FarmerListener;
 import com.avertox.jobsystem.listener.FisherListener;
+import com.avertox.jobsystem.listener.HunterListener;
 import com.avertox.jobsystem.listener.MinerListener;
 import com.avertox.jobsystem.listener.PlayerConnectionListener;
 import com.avertox.jobsystem.listener.AutomationListener;
@@ -62,10 +64,12 @@ public class AvertoxJobSystemPlugin extends JavaPlugin {
         FisherJob fisherJob = new FisherJob(configManager);
         WoodcutterJob woodcutterJob = new WoodcutterJob(configManager);
         MinerJob minerJob = new MinerJob(configManager);
+        HunterJob hunterJob = new HunterJob(configManager);
         jobManager.registerJob(farmerJob);
         jobManager.registerJob(fisherJob);
         jobManager.registerJob(woodcutterJob);
         jobManager.registerJob(minerJob);
+        jobManager.registerJob(hunterJob);
 
         this.recipeManager = new RecipeManager();
         this.customCraftingManager = new CustomCraftingManager(this);
@@ -76,7 +80,7 @@ public class AvertoxJobSystemPlugin extends JavaPlugin {
         this.toolService = new JobToolService(this);
         this.placedBlockTracker = new PlacedBlockTracker();
 
-        registerListeners(farmerJob, fisherJob, woodcutterJob, minerJob);
+        registerListeners(farmerJob, fisherJob, woodcutterJob, minerJob, hunterJob);
         registerCommands();
         scheduleAutosave();
     }
@@ -97,7 +101,13 @@ public class AvertoxJobSystemPlugin extends JavaPlugin {
         }
     }
 
-    private void registerListeners(FarmerJob farmerJob, FisherJob fisherJob, WoodcutterJob woodcutterJob, MinerJob minerJob) {
+    private void registerListeners(
+            FarmerJob farmerJob,
+            FisherJob fisherJob,
+            WoodcutterJob woodcutterJob,
+            MinerJob minerJob,
+            HunterJob hunterJob
+    ) {
         PluginManager pm = getServer().getPluginManager();
         pm.registerEvents(menuManager, this);
         pm.registerEvents(new PlayerConnectionListener(jobManager, automationManager), this);
@@ -105,7 +115,8 @@ public class AvertoxJobSystemPlugin extends JavaPlugin {
         pm.registerEvents(new FisherListener(jobManager, configManager, fisherJob, toolService), this);
         pm.registerEvents(new WoodcutterListener(jobManager, configManager, woodcutterJob, toolService, placedBlockTracker), this);
         pm.registerEvents(new MinerListener(jobManager, configManager, minerJob, toolService, placedBlockTracker), this);
-        pm.registerEvents(new AutomationListener(jobManager, automationManager, menuManager), this);
+        pm.registerEvents(new HunterListener(jobManager, configManager, hunterJob, toolService), this);
+        pm.registerEvents(new AutomationListener(jobManager, automationManager, economyService, configManager, menuManager), this);
         pm.registerEvents(new CraftingListener(jobManager, customCraftingManager), this);
         pm.registerEvents(new ToolLossListener(jobManager, toolService), this);
         pm.registerEvents(new PlacedBlockListener(placedBlockTracker), this);

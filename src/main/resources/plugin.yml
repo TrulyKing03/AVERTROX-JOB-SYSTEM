@@ -5,8 +5,8 @@ api-version: "1.20"
 softdepend: [Vault]
 commands:
   jobs:
-    description: Open job menus
-    usage: /jobs
+    description: Job system menu and handlers
+    usage: /jobs [sell|upgrade|recipes]
   jobsadmin:
     description: Admin controls for job system
     usage: /jobsadmin [player]

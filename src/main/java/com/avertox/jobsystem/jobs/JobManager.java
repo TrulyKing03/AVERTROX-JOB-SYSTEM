@@ -4,10 +4,13 @@ import com.avertox.jobsystem.data.MySqlManager;
 import com.avertox.jobsystem.economy.EconomyService;
 import com.avertox.jobsystem.model.JobType;
 import com.avertox.jobsystem.model.PlayerJobData;
+import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.entity.Player;
 
 import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -74,6 +77,24 @@ public class JobManager {
         double pay = job.scaledMoney(data.getLevel(), baseMoney);
         economyService.deposit(player, pay);
         data.addMoneyEarned(pay);
+        sendProgressActionBar(player, type, job.getProgress(data), xp, pay);
+    }
+
+    public void addMoneyEarned(UUID uuid, JobType type, double amount) {
+        if (amount <= 0.0D) {
+            return;
+        }
+        PlayerJobData data = getOrCreate(uuid, type);
+        data.addMoneyEarned(amount);
+    }
+
+    public Job.ProgressSnapshot getProgress(UUID uuid, JobType type) {
+        Job job = jobs.get(type);
+        if (job == null) {
+            return new Job.ProgressSnapshot(1, 1, 0.0D, 0.0D, 0.0D, 1.0D, true);
+        }
+        PlayerJobData data = getOrCreate(uuid, type);
+        return job.getProgress(data);
     }
 
     public void saveAll() {
@@ -163,5 +184,42 @@ public class JobManager {
     }
 
     public record SwitchResult(boolean success, long remainingMillis, boolean onCooldown) {
+    }
+
+    private void sendProgressActionBar(Player player, JobType type, Job.ProgressSnapshot progress, double gainedXp, double gainedMoney) {
+        StringBuilder action = new StringBuilder();
+        action.append("\u00A7e").append(type.name()).append("\u00A77 ");
+        action.append(progressBar(progress.progressPercent(), 12));
+        action.append("\u00A7f ").append((int) Math.round(progress.progressPercent() * 100.0D)).append("%");
+
+        if (progress.maxed()) {
+            action.append(" \u00A76MAX LEVEL");
+        } else {
+            action.append(" \u00A77Next: \u00A7b").append(formatOneDecimal(progress.xpToNext())).append(" XP");
+        }
+
+        action.append(" \u00A78|\u00A7a +").append(formatOneDecimal(gainedXp)).append(" XP");
+        if (gainedMoney > 0.0D) {
+            action.append(" \u00A78|\u00A7a $").append(formatMoney(gainedMoney));
+        }
+        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(action.toString()));
+    }
+
+    private String progressBar(double percent, int segments) {
+        int filled = (int) Math.round(Math.max(0.0D, Math.min(1.0D, percent)) * segments);
+        StringBuilder bar = new StringBuilder("\u00A78[");
+        for (int i = 0; i < segments; i++) {
+            bar.append(i < filled ? "\u00A7a|" : "\u00A77|");
+        }
+        bar.append("\u00A78]");
+        return bar.toString();
+    }
+
+    private String formatOneDecimal(double value) {
+        return String.format(Locale.US, "%.1f", value);
+    }
+
+    private String formatMoney(double value) {
+        return String.format(Locale.US, "%.2f", value);
     }
 }

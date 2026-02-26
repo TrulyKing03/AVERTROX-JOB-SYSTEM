@@ -31,6 +31,10 @@ public class RecipeManager {
                 "light_alloy", 5,
                 "vein_core", 8
         ));
+        requiredLevels.put(JobType.HUNTER, Map.of(
+                "tracker_bait", 4,
+                "predator_ration", 8
+        ));
     }
 
     public Set<String> availableRecipes(JobType type) {

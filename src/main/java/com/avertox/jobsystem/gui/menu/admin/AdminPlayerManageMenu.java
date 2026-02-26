@@ -88,6 +88,10 @@ public class AdminPlayerManageMenu implements BaseMenu {
             selectedJob = JobType.MINER;
             return;
         }
+        if (slot == 14) {
+            selectedJob = JobType.HUNTER;
+            return;
+        }
         if (slot == 49) {
             jobManager.clearSwitchCooldown(targetUuid);
             admin.sendMessage("§aCleared switch cooldown for " + target.getName());
@@ -146,6 +150,7 @@ public class AdminPlayerManageMenu implements BaseMenu {
         inventory.setItem(11, jobButton(JobType.FISHER, selectedJob == JobType.FISHER));
         inventory.setItem(12, jobButton(JobType.WOODCUTTER, selectedJob == JobType.WOODCUTTER));
         inventory.setItem(13, jobButton(JobType.MINER, selectedJob == JobType.MINER));
+        inventory.setItem(14, jobButton(JobType.HUNTER, selectedJob == JobType.HUNTER));
 
         inventory.setItem(20, MenuUtil.item(Material.EXPERIENCE_BOTTLE, "§bXP Control", List.of(
                 "§7Left: +100 XP",
@@ -250,6 +255,7 @@ public class AdminPlayerManageMenu implements BaseMenu {
             case FISHER -> Material.FISHING_ROD;
             case WOODCUTTER -> Material.IRON_AXE;
             case MINER -> Material.IRON_PICKAXE;
+            case HUNTER -> Material.BOW;
         };
         return MenuUtil.item(mat, (selected ? "§a§l" : "§e") + type.name(), List.of(
                 selected ? "§aSelected context" : "§7Click to select context"

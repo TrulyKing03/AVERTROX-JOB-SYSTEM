@@ -48,10 +48,10 @@ public class FisherListener implements Listener {
         PlayerJobData data = jobManager.getOrCreate(player.getUniqueId(), JobType.FISHER);
         if (!toolService.hasUsableTool(player, JobType.FISHER)) {
             if (toolService.hasOwnedToolInInventory(player, JobType.FISHER)) {
-                player.sendMessage("§eHold your FISHER bound tool in main hand to gain XP/money.");
+                player.sendMessage("\u00A7eHold your FISHER bound tool in main hand to gain XP/money.");
             } else {
                 toolService.grantCurrentTool(player, data, JobType.FISHER);
-                player.sendMessage("§aYou received your FISHER bound tool.");
+                player.sendMessage("\u00A7aYou received your FISHER bound tool.");
             }
             return;
         }
@@ -81,37 +81,17 @@ public class FisherListener implements Listener {
         double money = configManager.getReward(JobType.FISHER, "catch_money") * (1.0D + toolTier * 0.12D);
 
         if (fisherJob.hasImprovedRod(level)) {
-            xp += 1;
-            money += 1;
+            xp += 1.0D;
+            money += 1.0D;
         }
 
         String rarity = rollRarity(configManager.getFishRarityRates(), level, toolTier);
-        if ("legendary".equals(rarity)) {
-            xp += 8;
-            money += 12;
-        } else if ("epic".equals(rarity)) {
-            xp += 4;
-            money += 6;
-        } else if ("rare".equals(rarity)) {
-            xp += 2;
-            money += 3;
-        }
-
-        if (fisherJob.unlocksNewFishTypes(level)) {
-            if ("rare".equals(rarity)) {
-                item.setItemStack(new ItemStack(Material.SALMON, 2));
-                money += 4;
-            } else if ("epic".equals(rarity)) {
-                item.setItemStack(new ItemStack(Material.PUFFERFISH, 2));
-                money += 8;
-            } else if ("legendary".equals(rarity)) {
-                item.setItemStack(new ItemStack(Material.TROPICAL_FISH, 3));
-                money += 14;
-            }
-        }
+        CatchOutcome outcome = applyRarityOutcome(item, rarity, fisherJob.unlocksNewFishTypes(level));
+        xp += outcome.xpBonus();
+        money += outcome.moneyBonus();
 
         if (fisherJob.fasterReeling(level) && ("rare".equals(rarity) || "epic".equals(rarity) || "legendary".equals(rarity))) {
-            xp += 3;
+            xp += 3.0D;
         }
 
         double specialBonus = maybeSpecialFish(player, item, level, toolTier);
@@ -119,7 +99,7 @@ public class FisherListener implements Listener {
 
         jobManager.addProgress(player, JobType.FISHER, xp, money);
         player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.8f, 1.2f);
-        player.sendMessage("§bFish rarity: " + rarity + (specialBonus > 0 ? " §6(SPECIAL CATCH!)" : ""));
+        player.sendMessage("\u00A7bFish rarity: " + rarity + (specialBonus > 0 ? " \u00A76(SPECIAL CATCH!)" : ""));
     }
 
     @EventHandler
@@ -145,6 +125,30 @@ public class FisherListener implements Listener {
         }
     }
 
+    private CatchOutcome applyRarityOutcome(Item itemEntity, String rarity, boolean advancedUnlocked) {
+        return switch (rarity) {
+            case "rare" -> {
+                int amount = advancedUnlocked ? 2 : 1;
+                itemEntity.setItemStack(new ItemStack(Material.SALMON, amount));
+                yield new CatchOutcome(2.0D, 3.0D + (advancedUnlocked ? 2.0D : 0.0D));
+            }
+            case "epic" -> {
+                int amount = advancedUnlocked ? 2 : 1;
+                itemEntity.setItemStack(new ItemStack(Material.PUFFERFISH, amount));
+                yield new CatchOutcome(4.0D, 6.0D + (advancedUnlocked ? 3.0D : 0.0D));
+            }
+            case "legendary" -> {
+                int amount = advancedUnlocked ? 3 : 1;
+                itemEntity.setItemStack(new ItemStack(Material.TROPICAL_FISH, amount));
+                yield new CatchOutcome(8.0D, 12.0D + (advancedUnlocked ? 4.0D : 0.0D));
+            }
+            default -> {
+                itemEntity.setItemStack(new ItemStack(Material.COD, advancedUnlocked ? 2 : 1));
+                yield new CatchOutcome(0.0D, 0.0D);
+            }
+        };
+    }
+
     private double maybeSpecialFish(Player player, Item itemEntity, int level, int toolTier) {
         double chance = 0.02D + (level * 0.004D) + (toolTier * 0.006D);
         if (ThreadLocalRandom.current().nextDouble() > Math.min(0.35D, chance)) {
@@ -154,13 +158,13 @@ public class FisherListener implements Listener {
         ItemMeta meta = special.getItemMeta();
         if (meta != null) {
             String name = switch (ThreadLocalRandom.current().nextInt(4)) {
-                case 0 -> "§dNebula Koi";
-                case 1 -> "§bStormfin";
-                case 2 -> "§6Sunflare Snapper";
-                default -> "§5Voidscale";
+                case 0 -> "\u00A7dNebula Koi";
+                case 1 -> "\u00A7bStormfin";
+                case 2 -> "\u00A76Sunflare Snapper";
+                default -> "\u00A75Voidscale";
             };
             meta.setDisplayName(name);
-            meta.setLore(List.of("§7A rare premium catch.", "§aSells for bonus money."));
+            meta.setLore(List.of("\u00A77A rare premium catch.", "\u00A7aSells for bonus money."));
             special.setItemMeta(meta);
         }
         itemEntity.setItemStack(special);
@@ -174,45 +178,39 @@ public class FisherListener implements Listener {
         if (keys.isEmpty()) {
             return "common";
         }
-        double sum = 0;
+        double sum = 0.0D;
         for (String key : keys) {
-            double value = ((Number) rates.get(key)).doubleValue();
-            if ("rare".equals(key) && level >= 4) {
-                value += 0.08;
-            }
-            if ("rare".equals(key)) {
-                value += toolTier * 0.01D;
-            }
-            if ("epic".equals(key)) {
-                value += toolTier * 0.004D;
-            }
-            if ("legendary".equals(key)) {
-                value += toolTier * 0.002D;
-            }
-            sum += value;
+            sum += adjustedWeight(key, rates, level, toolTier);
         }
 
         double random = Math.random() * sum;
-        double running = 0;
+        double running = 0.0D;
         for (String key : keys) {
-            double value = ((Number) rates.get(key)).doubleValue();
-            if ("rare".equals(key) && level >= 4) {
-                value += 0.08;
-            }
-            if ("rare".equals(key)) {
-                value += toolTier * 0.01D;
-            }
-            if ("epic".equals(key)) {
-                value += toolTier * 0.004D;
-            }
-            if ("legendary".equals(key)) {
-                value += toolTier * 0.002D;
-            }
-            running += value;
+            running += adjustedWeight(key, rates, level, toolTier);
             if (random <= running) {
                 return key;
             }
         }
         return "common";
+    }
+
+    private double adjustedWeight(String key, Map<String, Object> rates, int level, int toolTier) {
+        double value = ((Number) rates.get(key)).doubleValue();
+        if ("rare".equals(key) && level >= 4) {
+            value += 0.08D;
+        }
+        if ("rare".equals(key)) {
+            value += toolTier * 0.01D;
+        }
+        if ("epic".equals(key)) {
+            value += toolTier * 0.004D;
+        }
+        if ("legendary".equals(key)) {
+            value += toolTier * 0.002D;
+        }
+        return value;
+    }
+
+    private record CatchOutcome(double xpBonus, double moneyBonus) {
     }
 }

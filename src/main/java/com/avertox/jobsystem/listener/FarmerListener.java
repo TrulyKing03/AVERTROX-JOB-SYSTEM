@@ -86,8 +86,7 @@ public class FarmerListener implements Listener {
         int toolTier = toolService.getHeldTier(player, JobType.FARMER);
         // Reduced farmer progression rate.
         double xp = configManager.getReward(JobType.FARMER, "crop_xp") * (0.35D + toolTier * 0.03D);
-        double money = configManager.getReward(JobType.FARMER, "crop_money") * (0.30D + toolTier * 0.035D);
-        jobManager.addProgress(player, JobType.FARMER, xp, money);
+        jobManager.addProgress(player, JobType.FARMER, xp, 0.0D);
 
         if (farmerJob.hasTntAutoHarvest(data.getLevel()) && Math.random() < configManager.getTntAutoHarvestChance()) {
             runTntHarvestBurst(player, block.getLocation(), data.getLevel(), hand);
@@ -126,8 +125,8 @@ public class FarmerListener implements Listener {
             }
         }
         if (harvested > 0) {
-            double bonusMoney = harvested * configManager.getReward(JobType.FARMER, "crop_money") * 0.25D;
-            jobManager.addProgress(player, JobType.FARMER, 0.0D, bonusMoney);
+            double bonusXp = harvested * configManager.getReward(JobType.FARMER, "crop_xp") * 0.15D;
+            jobManager.addProgress(player, JobType.FARMER, bonusXp, 0.0D);
             player.sendMessage("§6TNT Harvest: +" + harvested + " crops.");
         }
     }

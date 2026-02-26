@@ -16,6 +16,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -80,7 +81,6 @@ public class MinerListener implements Listener {
         if (JobMaterials.ORES.contains(material)) {
             player.playSound(block.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 0.85f, 0.85f);
             double xp = configManager.getReward(JobType.MINER, "ore_xp") * (1.0D + toolTier * 0.10D);
-            double money = configManager.getReward(JobType.MINER, "ore_money") * (1.0D + toolTier * 0.13D);
 
             // Level 4+: movement and mining speed boosts.
             if (minerJob.hasSpeedBoost(level)) {
@@ -93,12 +93,11 @@ public class MinerListener implements Listener {
                 int upgradeTier = getUpgradeTier(data.getUpgrades());
                 if (upgradeTier > 0) {
                     xp += upgradeTier * 1.5D;
-                    money += upgradeTier * 2.0D;
                     maybeDropBonusOre(block, material, upgradeTier + (toolTier / 3));
                 }
             }
 
-            jobManager.addProgress(player, JobType.MINER, xp, money);
+            jobManager.addProgress(player, JobType.MINER, xp, 0.0D);
 
             // Levels 8-10: ore vein mining.
             if (minerJob.hasVeinMining(level)) {
@@ -115,6 +114,32 @@ public class MinerListener implements Listener {
             }
             jobManager.addProgress(player, JobType.MINER, xp, 0.0D);
         }
+    }
+
+    @EventHandler
+    public void onMineDamage(BlockDamageEvent event) {
+        Block block = event.getBlock();
+        Material material = block.getType();
+        boolean isMinerBlock = JobMaterials.ORES.contains(material)
+                || material == Material.STONE
+                || material == Material.DEEPSLATE;
+        if (!isMinerBlock) {
+            return;
+        }
+
+        Player player = event.getPlayer();
+        if (!jobManager.isActiveJob(player.getUniqueId(), JobType.MINER)) {
+            return;
+        }
+        if (!toolService.hasUsableTool(player, JobType.MINER)) {
+            return;
+        }
+        PlayerJobData data = jobManager.getOrCreate(player.getUniqueId(), JobType.MINER);
+        if (!minerJob.hasSpeedBoost(data.getLevel())) {
+            return;
+        }
+        player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 100, 0, true, false, false));
+        player.addPotionEffect(new PotionEffect(PotionEffectType.FAST_DIGGING, 100, 0, true, false, false));
     }
 
     private void maybeDropBonusOre(Block block, Material ore, int upgradeTier) {

@@ -156,6 +156,7 @@ public class UpgradeAnvilMenu implements BaseMenu {
             case FISHER -> "rod_" + bucket;
             case WOODCUTTER -> "axe_" + bucket;
             case MINER -> "pickaxe_" + bucket;
+            case HUNTER -> "blade_" + bucket;
         };
     }
 }
