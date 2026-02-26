@@ -49,7 +49,7 @@ public class HunterListener implements Listener {
         PlayerJobData data = jobManager.getOrCreate(player.getUniqueId(), JobType.HUNTER);
         if (!toolService.hasUsableTool(player, JobType.HUNTER)) {
             if (toolService.hasOwnedToolInInventory(player, JobType.HUNTER)) {
-                player.sendMessage("\u00A7eHold your HUNTER bound tool in main hand to gain XP/money.");
+                player.sendMessage("\u00A7eHold your HUNTER bound tool in main hand to gain XP.");
             } else {
                 toolService.grantCurrentTool(player, data, JobType.HUNTER);
                 player.sendMessage("\u00A7aYou received your HUNTER bound tool.");
@@ -62,10 +62,8 @@ public class HunterListener implements Listener {
         boolean hostile = event.getEntity() instanceof Monster;
 
         double xp = configManager.getReward(JobType.HUNTER, "kill_xp") * (1.0D + toolTier * 0.10D);
-        double money = configManager.getReward(JobType.HUNTER, "kill_money") * (1.0D + toolTier * 0.12D);
         if (hostile) {
             xp += 2.0D;
-            money += 1.5D;
         }
 
         if (hunterJob.hasTrackerInstinct(level)) {
@@ -78,7 +76,6 @@ public class HunterListener implements Listener {
             int streak = streaks.getOrDefault(player.getUniqueId(), 1);
             if (streak >= 3) {
                 xp += Math.min(8.0D, streak * 0.75D);
-                money += Math.min(6.0D, streak * 0.50D);
             }
         }
 
@@ -89,7 +86,8 @@ public class HunterListener implements Listener {
             }
         }
 
-        jobManager.addProgress(player, JobType.HUNTER, xp, money);
+        // Hunter money comes from selling drops, not direct kill payouts.
+        jobManager.addProgress(player, JobType.HUNTER, xp, 0.0D);
         player.playSound(player.getLocation(), Sound.ENTITY_ARROW_HIT_PLAYER, 0.7f, 1.15f);
     }
 

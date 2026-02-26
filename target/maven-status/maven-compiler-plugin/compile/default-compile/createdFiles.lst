@@ -54,6 +54,7 @@ com\avertox\jobsystem\data\MySqlManager.class
 com\avertox\jobsystem\listener\MinerListener$1.class
 com\avertox\jobsystem\automation\AutoHunterBlock.class
 com\avertox\jobsystem\model\JobType.class
+com\avertox\jobsystem\config\ConfigManager$1.class
 com\avertox\jobsystem\jobs\WoodcutterJob.class
 com\avertox\jobsystem\listener\FarmerListener.class
 com\avertox\jobsystem\gui\MenuUtil.class
