@@ -12,4 +12,7 @@ public interface BaseMenu {
     void handleClick(InventoryClickEvent event);
 
     void refresh(Player player);
+
+    default void onClose(Player player) {
+    }
 }

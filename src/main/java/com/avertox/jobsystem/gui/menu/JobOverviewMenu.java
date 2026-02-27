@@ -66,6 +66,10 @@ public class JobOverviewMenu implements BaseMenu {
             menuManager.open(player, new JobSellMenu(jobManager, economyService, configManager));
             return;
         }
+        if (slot == 50) {
+            menuManager.open(player, new GeneratorBrokerMenu(jobManager, configManager));
+            return;
+        }
 
         JobType target = switch (slot) {
             case 19 -> JobType.FARMER;
@@ -133,6 +137,10 @@ public class JobOverviewMenu implements BaseMenu {
         inventory.setItem(48, MenuUtil.item(Material.EMERALD_BLOCK, "\u00A7a\u00A7lSell Handler", List.of(
                 "\u00A77Open job market to sell",
                 "\u00A77collected resources."
+        )));
+        inventory.setItem(50, MenuUtil.item(Material.VILLAGER_SPAWN_EGG, "\u00A76\u00A7lGenerator Broker", List.of(
+                "\u00A77NPC-style interaction menu for generators.",
+                "\u00A77Shows authorized block/output rules."
         )));
     }
 

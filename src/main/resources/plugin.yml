@@ -6,7 +6,7 @@ softdepend: [Vault]
 commands:
   jobs:
     description: Job system menu and handlers
-    usage: /jobs [sell|upgrade|recipes]
+    usage: /jobs [sell|generator|upgrade|recipes]
   jobsadmin:
     description: Admin controls for job system
     usage: /jobsadmin [player]

@@ -33,6 +33,16 @@ public class CustomCraftingManager {
         return requirements;
     }
 
+    public NamespacedKey findRecipeKey(JobType type, String recipeKey) {
+        for (Map.Entry<NamespacedKey, RecipeRequirement> entry : requirements.entrySet()) {
+            RecipeRequirement requirement = entry.getValue();
+            if (requirement.jobType() == type && requirement.recipeKey().equalsIgnoreCase(recipeKey)) {
+                return entry.getKey();
+            }
+        }
+        return null;
+    }
+
     private void registerFarmerRecipes() {
         registerSimple(
                 "nutrient_stew",

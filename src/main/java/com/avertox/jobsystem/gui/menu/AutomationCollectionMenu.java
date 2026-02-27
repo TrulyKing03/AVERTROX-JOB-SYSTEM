@@ -8,10 +8,13 @@ import com.avertox.jobsystem.gui.BaseMenu;
 import com.avertox.jobsystem.gui.MenuUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitTask;
 
 import java.util.List;
 import java.util.Locale;
@@ -23,18 +26,25 @@ public class AutomationCollectionMenu implements BaseMenu {
             28, 29, 30, 31, 32, 33, 34
     };
 
+    private final JavaPlugin plugin;
     private final AutomationManager automationManager;
     private final EconomyService economyService;
     private final ConfigManager configManager;
     private final AutomationBlock block;
     private final Inventory inventory;
 
+    private BukkitTask refreshTask;
+    private int lastStoredCount = -1;
+    private int lastRemaining = -1;
+
     public AutomationCollectionMenu(
+            JavaPlugin plugin,
             AutomationManager automationManager,
             EconomyService economyService,
             ConfigManager configManager,
             AutomationBlock block
     ) {
+        this.plugin = plugin;
         this.automationManager = automationManager;
         this.economyService = economyService;
         this.configManager = configManager;
@@ -51,6 +61,7 @@ public class AutomationCollectionMenu implements BaseMenu {
     public void open(Player player) {
         refresh(player);
         player.openInventory(inventory);
+        startAutoRefresh(player);
     }
 
     @Override
@@ -89,18 +100,22 @@ public class AutomationCollectionMenu implements BaseMenu {
 
     @Override
     public void refresh(Player player) {
-        inventory.clear();
-        MenuUtil.frame(inventory, Material.GREEN_STAINED_GLASS_PANE, "\u00A72");
-
-        int storedCount = block.getStorage().values().stream().mapToInt(Integer::intValue).sum();
+        int remaining = automationManager.getSecondsUntilNextGeneration(block);
         int interval = automationManager.getGenerationIntervalSeconds(block);
+        Material frame = frameForTimer(remaining, interval);
+
+        inventory.clear();
+        MenuUtil.frame(inventory, frame, "\u00A72");
+
+        int storedCount = storedCount();
         inventory.setItem(4, MenuUtil.item(Material.BEACON, "\u00A7a\u00A7lAutomation Vault", List.of(
                 "\u00A77Job: \u00A7f" + block.getJobType(),
                 "\u00A77Level: \u00A7f" + block.getLevel() + "/" + automationManager.getMaxLevel(),
                 "\u00A77Stored Items: \u00A7f" + storedCount + "/" + block.getCapacity(),
                 "\u00A77Used Slots: \u00A7f" + block.getUsedSlots() + "/" + block.getSlotCapacity(),
                 "\u00A77Output Interval: \u00A7f" + interval + "s",
-                "\u00A77Speed Bonus/Level: \u00A7f-" + configManager.getAutomationSpeedUpgradeSeconds() + "s"
+                "\u00A77Next Output In: \u00A7e" + remaining + "s",
+                "\u00A77Frame Color = timer animation"
         )));
 
         int visibleSlots = Math.min(STORAGE_SLOTS.length, block.getSlotCapacity());
@@ -144,6 +159,75 @@ public class AutomationCollectionMenu implements BaseMenu {
                 "\u00A77Transfer all generated items",
                 "\u00A77directly to your inventory."
         )));
+    }
+
+    @Override
+    public void onClose(Player player) {
+        stopAutoRefresh();
+    }
+
+    private void startAutoRefresh(Player player) {
+        stopAutoRefresh();
+        lastStoredCount = storedCount();
+        lastRemaining = automationManager.getSecondsUntilNextGeneration(block);
+
+        refreshTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
+            if (!player.isOnline()) {
+                stopAutoRefresh();
+                return;
+            }
+            if (player.getOpenInventory() == null || !player.getOpenInventory().getTopInventory().equals(inventory)) {
+                stopAutoRefresh();
+                return;
+            }
+
+            int currentStored = storedCount();
+            int currentRemaining = automationManager.getSecondsUntilNextGeneration(block);
+
+            if (currentStored > lastStoredCount) {
+                Sound complete = configManager.getAutomationCompleteSound();
+                if (complete != null) {
+                    player.playSound(player.getLocation(), complete, configManager.getAutomationCompleteVolume(), configManager.getAutomationCompletePitch());
+                }
+            } else {
+                Sound tick = configManager.getAutomationTickSound();
+                if (tick != null) {
+                    player.playSound(player.getLocation(), tick, configManager.getAutomationTickVolume(), configManager.getAutomationTickPitch());
+                }
+            }
+
+            if (currentStored != lastStoredCount || currentRemaining != lastRemaining) {
+                refresh(player);
+            }
+
+            lastStoredCount = currentStored;
+            lastRemaining = currentRemaining;
+        }, 20L, 20L);
+    }
+
+    private void stopAutoRefresh() {
+        if (refreshTask != null) {
+            refreshTask.cancel();
+            refreshTask = null;
+        }
+    }
+
+    private int storedCount() {
+        return block.getStorage().values().stream().mapToInt(Integer::intValue).sum();
+    }
+
+    private Material frameForTimer(int remaining, int interval) {
+        if (interval <= 0) {
+            return Material.GREEN_STAINED_GLASS_PANE;
+        }
+        double pct = 1.0D - (Math.max(0, Math.min(interval, remaining)) / (double) interval);
+        if (pct < 0.34D) {
+            return Material.RED_STAINED_GLASS_PANE;
+        }
+        if (pct < 0.67D) {
+            return Material.YELLOW_STAINED_GLASS_PANE;
+        }
+        return Material.GREEN_STAINED_GLASS_PANE;
     }
 
     private String format(double value) {

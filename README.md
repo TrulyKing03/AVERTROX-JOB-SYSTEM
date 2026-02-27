@@ -32,11 +32,11 @@ Players choose one active profession, grind XP and money through valid gameplay,
 | 🗿 **Relic Tools** | Owner-bound, tiered job tools with evolving perks |
 | 💰 **Economy** | Vault payouts, upgrade costs, and sell-handler economy (`/jobs sell`) |
 | 🧪 **Admin Toolkit** | `/jobsadmin` GUI for complete progression testing |
-| 🤖 **Automation** | Per-job passive blocks at level 10 with upgradeable slots/speed |
-| 📜 **Recipes** | Job-restricted unlockable crafting recipes |
+| 🤖 **Automation** | Config-restricted per-job generators at level 10 with upgradeable slots/speed, countdown UI, and process sounds |
+| 📜 **Recipes** | Job-restricted vanilla-table recipes with unlock state + clickable pattern preview |
 | 🛡️ **Anti-Exploit** | Blocks place-break farming loops |
 | 🗄️ **Persistence** | MySQL-backed player and automation data |
-| 🧰 **GUI Suite** | Overview, sell handler, upgrade/anvil, recipes, and automation collection menus |
+| 🧰 **GUI Suite** | Overview, sell handler, generator broker, upgrade/anvil, recipes, and automation collection menus |
 
 ---
 
@@ -85,6 +85,9 @@ Config includes:
 - Crop/ore regrowth timers
 - Fisher rarity rates
 - Automation limits, generation timers, and automation upgrade scaling
+- Generator block restrictions per job (`automation.generator_blocks`)
+- Generator output pools per job (`automation.generator_outputs`)
+- Automation process sounds (`automation.sounds.tick` / `automation.sounds.complete`)
 - XP/money rewards per action
 - Sell prices (`sell_prices`)
 
@@ -99,6 +102,10 @@ Config includes:
 - `/jobs sell`
   - Opens Job Handler sell menu
   - Sell configured resources from inventory for Vault money
+
+- `/jobs generator`
+  - Opens Generator Broker menu
+  - Shows allowed generator block + generated outputs for each job
 
 - `/jobs upgrade <job>`
   - Opens upgrade/anvil menu (`farmer`, `fisher`, `woodcutter`, `miner`, `hunter`)
@@ -161,16 +168,20 @@ Behavior rules:
 
 ## 🤖 Automation Blocks
 
-Unlocks at level 10+:
-- `HAY_BLOCK` -> Auto-Farm
-- `BARREL` -> Auto-Fish
-- `OAK_WOOD` -> Auto-Wood
-- `BLAST_FURNACE` -> Auto-Mine
-- `TARGET` -> Auto-Hunt
+Unlocks at level 10+ using configured generator blocks per job:
+- `Farmer` -> `automation.generator_blocks.FARMER`
+- `Fisher` -> `automation.generator_blocks.FISHER`
+- `Woodcutter` -> `automation.generator_blocks.WOODCUTTER`
+- `Miner` -> `automation.generator_blocks.MINER`
+- `Hunter` -> `automation.generator_blocks.HUNTER`
 
+- Only configured block types are valid for each job
+- Generated items are restricted by `automation.generator_outputs.<JOB>`
 - Right-click owned block to collect resources
 - Per-job block limits are config-driven
 - Automation blocks can be upgraded for more slots and faster output
+- Automation Collection menu shows live countdown and animated status glass
+- Tick/completion sounds are configurable and play during automation processing
 
 ---
 
@@ -232,6 +243,7 @@ Data lifecycle:
 - Streak-based combat scaling and utility perks
 - Hunter relic progression path (tiered bound weapon)
 - Hunter recipes, admin support, and automation (`TARGET`)
+- Hunter kill actions grant XP while money is primarily from selling drops in `/jobs sell`
 
 ---
 
@@ -246,7 +258,7 @@ Data lifecycle:
 ## 🎆 Level-Up Effects
 
 - Achievement-style level-up sound
-- Celebration particles (non-damaging)
+- Celebration particles/fireworks are visual-only (no player/mob/block damage)
 
 ---
 
@@ -265,7 +277,7 @@ Relics are your job tools (hoe/rod/axe/pickaxe). They are bound to you and scale
 Use `/jobs upgrade <job>` (or active-job upgrade menu), pay cost, meet level requirement, and ascend relic tier.
 
 ### What are recipes?
-Recipes are job-locked craftables. You unlock them in the recipe menu once your level requirement is met.
+Recipes are job-locked craftables. In `/jobs recipes <job>`, left-click previews the exact 3x3 pattern and right-click unlocks when level requirements are met.
 
 ### Can I have multiple active jobs?
 No. One active job at a time. You can switch later after cooldown.
@@ -281,6 +293,7 @@ Typical causes:
 - player-placed block (anti-exploit)
 - action not valid for that job context
 - for block jobs, money is now primarily through `/jobs sell`
+- hunter XP is from valid kills; money is primarily from selling drops in `/jobs sell`
 
 ---
 

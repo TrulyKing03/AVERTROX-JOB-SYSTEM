@@ -110,6 +110,12 @@ public class AutomationManager {
         return Math.max(1, base - ((Math.max(1, block.getLevel()) - 1) * speedBonus));
     }
 
+    public int getSecondsUntilNextGeneration(AutomationBlock block) {
+        int interval = getGenerationIntervalSeconds(block);
+        int elapsed = elapsedSeconds.getOrDefault(block.getLocationKey(), 0);
+        return Math.max(0, interval - elapsed);
+    }
+
     public List<ItemStack> collectItems(AutomationBlock block) {
         List<ItemStack> items = new ArrayList<>();
         for (Map.Entry<Material, Integer> entry : block.getStorage().entrySet()) {
@@ -202,9 +208,27 @@ public class AutomationManager {
         int elapsed = elapsedSeconds.getOrDefault(key, 0) + 1;
         int interval = getGenerationIntervalSeconds(block);
         if (elapsed >= interval) {
-            block.generateTick();
+            if (!generateConfiguredOutput(block)) {
+                block.generateTick();
+            }
             elapsed = 0;
         }
         elapsedSeconds.put(key, elapsed);
+    }
+
+    private boolean generateConfiguredOutput(AutomationBlock block) {
+        Map<Material, Integer> outputs = configManager.getGeneratorOutputs(block.getJobType());
+        if (outputs.isEmpty()) {
+            return false;
+        }
+        int level = Math.max(1, block.getLevel());
+        for (Map.Entry<Material, Integer> entry : outputs.entrySet()) {
+            int base = Math.max(0, entry.getValue());
+            if (base <= 0) {
+                continue;
+            }
+            block.addResource(entry.getKey(), base * level);
+        }
+        return true;
     }
 }

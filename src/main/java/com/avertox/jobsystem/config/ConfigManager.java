@@ -2,6 +2,7 @@ package com.avertox.jobsystem.config;
 
 import com.avertox.jobsystem.model.JobType;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -14,6 +15,8 @@ import java.util.Map;
 
 public class ConfigManager {
     private static final Map<Material, Double> DEFAULT_SELL_PRICES = createDefaultSellPrices();
+    private static final Map<JobType, Material> DEFAULT_GENERATOR_BLOCKS = createDefaultGeneratorBlocks();
+    private static final Map<JobType, Map<Material, Integer>> DEFAULT_GENERATOR_OUTPUTS = createDefaultGeneratorOutputs();
 
     private final JavaPlugin plugin;
     private FileConfiguration config;
@@ -52,6 +55,76 @@ public class ConfigManager {
 
     public int getMaxAutomationBlocks(JobType type) {
         return config.getInt("automation.max_blocks_per_player." + type.key(), 3);
+    }
+
+    public Material getGeneratorBlock(JobType type) {
+        String raw = config.getString("automation.generator_blocks." + type.key(), null);
+        if (raw != null) {
+            Material parsed = Material.matchMaterial(raw.trim());
+            if (parsed != null && parsed.isBlock()) {
+                return parsed;
+            }
+        }
+        return DEFAULT_GENERATOR_BLOCKS.get(type);
+    }
+
+    public JobType resolveGeneratorJob(Material blockType) {
+        for (JobType type : JobType.values()) {
+            Material configured = getGeneratorBlock(type);
+            if (configured == blockType) {
+                return type;
+            }
+        }
+        return null;
+    }
+
+    public Map<Material, Integer> getGeneratorOutputs(JobType type) {
+        ConfigurationSection section = config.getConfigurationSection("automation.generator_outputs." + type.key());
+        Map<Material, Integer> parsed = new EnumMap<>(Material.class);
+        if (section != null) {
+            for (String key : section.getKeys(false)) {
+                Material material = Material.matchMaterial(key.trim());
+                if (material == null) {
+                    continue;
+                }
+                int amount = Math.max(0, section.getInt(key, 0));
+                if (amount > 0) {
+                    parsed.put(material, amount);
+                }
+            }
+        }
+        if (!parsed.isEmpty()) {
+            return parsed;
+        }
+        Map<Material, Integer> defaults = DEFAULT_GENERATOR_OUTPUTS.get(type);
+        if (defaults == null) {
+            return new EnumMap<>(Material.class);
+        }
+        return new EnumMap<>(defaults);
+    }
+
+    public Sound getAutomationTickSound() {
+        return parseSound("automation.sounds.tick", Sound.BLOCK_NOTE_BLOCK_HAT);
+    }
+
+    public Sound getAutomationCompleteSound() {
+        return parseSound("automation.sounds.complete", Sound.ENTITY_EXPERIENCE_ORB_PICKUP);
+    }
+
+    public float getAutomationTickVolume() {
+        return (float) config.getDouble("automation.sounds.tick_volume", 0.35D);
+    }
+
+    public float getAutomationTickPitch() {
+        return (float) config.getDouble("automation.sounds.tick_pitch", 1.35D);
+    }
+
+    public float getAutomationCompleteVolume() {
+        return (float) config.getDouble("automation.sounds.complete_volume", 0.60D);
+    }
+
+    public float getAutomationCompletePitch() {
+        return (float) config.getDouble("automation.sounds.complete_pitch", 1.15D);
     }
 
     public int getAutosaveMinutes() {
@@ -211,6 +284,55 @@ public class ConfigManager {
         }
     }
 
+    private static Map<JobType, Material> createDefaultGeneratorBlocks() {
+        Map<JobType, Material> map = new EnumMap<>(JobType.class);
+        map.put(JobType.FARMER, Material.HAY_BLOCK);
+        map.put(JobType.FISHER, Material.BARREL);
+        map.put(JobType.WOODCUTTER, Material.OAK_WOOD);
+        map.put(JobType.MINER, Material.BLAST_FURNACE);
+        map.put(JobType.HUNTER, Material.TARGET);
+        return map;
+    }
+
+    private static Map<JobType, Map<Material, Integer>> createDefaultGeneratorOutputs() {
+        Map<JobType, Map<Material, Integer>> map = new EnumMap<>(JobType.class);
+
+        Map<Material, Integer> farmer = new EnumMap<>(Material.class);
+        farmer.put(Material.WHEAT, 1);
+        map.put(JobType.FARMER, farmer);
+
+        Map<Material, Integer> fisher = new EnumMap<>(Material.class);
+        fisher.put(Material.COD, 1);
+        map.put(JobType.FISHER, fisher);
+
+        Map<Material, Integer> wood = new EnumMap<>(Material.class);
+        wood.put(Material.OAK_LOG, 1);
+        map.put(JobType.WOODCUTTER, wood);
+
+        Map<Material, Integer> miner = new EnumMap<>(Material.class);
+        miner.put(Material.RAW_IRON, 1);
+        map.put(JobType.MINER, miner);
+
+        Map<Material, Integer> hunter = new EnumMap<>(Material.class);
+        hunter.put(Material.BONE, 1);
+        hunter.put(Material.ARROW, 1);
+        map.put(JobType.HUNTER, hunter);
+
+        return map;
+    }
+
+    private Sound parseSound(String path, Sound fallback) {
+        String raw = config.getString(path, fallback.name());
+        if (raw == null || raw.isBlank()) {
+            return fallback;
+        }
+        try {
+            return Sound.valueOf(raw.trim().toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException ex) {
+            return fallback;
+        }
+    }
+
     private double defaultReward(JobType type, String key) {
         return switch (type) {
             case FARMER -> switch (key) {
@@ -237,7 +359,7 @@ public class ConfigManager {
             };
             case HUNTER -> switch (key) {
                 case "kill_xp" -> 9.0D;
-                case "kill_money" -> 7.0D;
+                case "kill_money" -> 0.0D;
                 default -> 0.0D;
             };
         };

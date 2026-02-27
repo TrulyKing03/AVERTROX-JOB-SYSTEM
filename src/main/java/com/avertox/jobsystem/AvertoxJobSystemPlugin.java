@@ -15,6 +15,7 @@ import com.avertox.jobsystem.jobs.MinerJob;
 import com.avertox.jobsystem.jobs.WoodcutterJob;
 import com.avertox.jobsystem.listener.FarmerListener;
 import com.avertox.jobsystem.listener.FisherListener;
+import com.avertox.jobsystem.listener.FireworkSafetyListener;
 import com.avertox.jobsystem.listener.HunterListener;
 import com.avertox.jobsystem.listener.MinerListener;
 import com.avertox.jobsystem.listener.PlayerConnectionListener;
@@ -116,10 +117,11 @@ public class AvertoxJobSystemPlugin extends JavaPlugin {
         pm.registerEvents(new WoodcutterListener(jobManager, configManager, woodcutterJob, toolService, placedBlockTracker), this);
         pm.registerEvents(new MinerListener(jobManager, configManager, minerJob, toolService, placedBlockTracker), this);
         pm.registerEvents(new HunterListener(jobManager, configManager, hunterJob, toolService), this);
-        pm.registerEvents(new AutomationListener(jobManager, automationManager, economyService, configManager, menuManager), this);
+        pm.registerEvents(new AutomationListener(jobManager, automationManager, economyService, configManager, menuManager, this), this);
         pm.registerEvents(new CraftingListener(jobManager, customCraftingManager), this);
         pm.registerEvents(new ToolLossListener(jobManager, toolService), this);
         pm.registerEvents(new PlacedBlockListener(placedBlockTracker), this);
+        pm.registerEvents(new FireworkSafetyListener(), this);
     }
 
     private void registerCommands() {
@@ -131,9 +133,9 @@ public class AvertoxJobSystemPlugin extends JavaPlugin {
                     menuManager,
                     jobManager,
                     recipeManager,
+                    customCraftingManager,
                     economyService,
                     configManager,
-                    automationManager,
                     toolService
             ));
         }

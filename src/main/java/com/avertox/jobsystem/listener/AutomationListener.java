@@ -9,7 +9,6 @@ import com.avertox.jobsystem.gui.menu.AutomationCollectionMenu;
 import com.avertox.jobsystem.jobs.JobManager;
 import com.avertox.jobsystem.model.JobType;
 import com.avertox.jobsystem.model.PlayerJobData;
-import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -17,6 +16,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.plugin.java.JavaPlugin;
 
 public class AutomationListener implements Listener {
     private final JobManager jobManager;
@@ -24,42 +24,45 @@ public class AutomationListener implements Listener {
     private final EconomyService economyService;
     private final ConfigManager configManager;
     private final MenuManager menuManager;
+    private final JavaPlugin plugin;
 
     public AutomationListener(
             JobManager jobManager,
             AutomationManager automationManager,
             EconomyService economyService,
             ConfigManager configManager,
-            MenuManager menuManager
+            MenuManager menuManager,
+            JavaPlugin plugin
     ) {
         this.jobManager = jobManager;
         this.automationManager = automationManager;
         this.economyService = economyService;
         this.configManager = configManager;
         this.menuManager = menuManager;
+        this.plugin = plugin;
     }
 
     @EventHandler
     public void onAutomationPlace(BlockPlaceEvent event) {
         Player player = event.getPlayer();
         Block block = event.getBlockPlaced();
-        JobType type = fromAutomationMaterial(block.getType());
+        JobType type = configManager.resolveGeneratorJob(block.getType());
         if (type == null) {
             return;
         }
         PlayerJobData data = jobManager.getOrCreate(player.getUniqueId(), type);
         if (data.getLevel() < 10) {
-            player.sendMessage("§cYou need level 10 in " + type.name() + " to place automation.");
+            player.sendMessage("\u00A7cYou need level 10 in " + type.name() + " to place automation.");
             event.setCancelled(true);
             return;
         }
         if (!automationManager.canPlace(player.getUniqueId(), type)) {
-            player.sendMessage("§cAutomation block limit reached for " + type.name() + ".");
+            player.sendMessage("\u00A7cAutomation block limit reached for " + type.name() + ".");
             event.setCancelled(true);
             return;
         }
         automationManager.create(player.getUniqueId(), type, block.getLocation());
-        player.sendMessage("§aAutomation block placed.");
+        player.sendMessage("\u00A7aAutomation block placed.");
     }
 
     @EventHandler
@@ -75,23 +78,17 @@ public class AutomationListener implements Listener {
         if (automationBlock == null) {
             return;
         }
-        Player player = event.getPlayer();
-        if (!automationBlock.getOwner().equals(player.getUniqueId())) {
-            player.sendMessage("§cYou do not own this automation block.");
+        if (block.getType() != configManager.getGeneratorBlock(automationBlock.getJobType())) {
+            event.setCancelled(true);
+            event.getPlayer().sendMessage("\u00A7cThis block type is not authorized for that generator job.");
             return;
         }
-        menuManager.open(player, new AutomationCollectionMenu(automationManager, economyService, configManager, automationBlock));
+        Player player = event.getPlayer();
+        if (!automationBlock.getOwner().equals(player.getUniqueId())) {
+            player.sendMessage("\u00A7cYou do not own this automation block.");
+            return;
+        }
+        menuManager.open(player, new AutomationCollectionMenu(plugin, automationManager, economyService, configManager, automationBlock));
         event.setCancelled(true);
-    }
-
-    private JobType fromAutomationMaterial(Material material) {
-        return switch (material) {
-            case HAY_BLOCK -> JobType.FARMER;
-            case BARREL -> JobType.FISHER;
-            case OAK_WOOD -> JobType.WOODCUTTER;
-            case BLAST_FURNACE -> JobType.MINER;
-            case TARGET -> JobType.HUNTER;
-            default -> null;
-        };
     }
 }

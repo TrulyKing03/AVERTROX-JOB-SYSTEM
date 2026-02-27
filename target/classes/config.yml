@@ -19,6 +19,31 @@ automation:
   slot_base: 6
   slot_per_level: 2
   speed_upgrade_seconds: 2
+  sounds:
+    tick: BLOCK_NOTE_BLOCK_HAT
+    complete: ENTITY_EXPERIENCE_ORB_PICKUP
+    tick_volume: 0.35
+    tick_pitch: 1.35
+    complete_volume: 0.60
+    complete_pitch: 1.15
+  generator_blocks:
+    farmer: HAY_BLOCK
+    fisher: BARREL
+    woodcutter: OAK_WOOD
+    miner: BLAST_FURNACE
+    hunter: TARGET
+  generator_outputs:
+    farmer:
+      WHEAT: 1
+    fisher:
+      COD: 1
+    woodcutter:
+      OAK_LOG: 1
+    miner:
+      RAW_IRON: 1
+    hunter:
+      BONE: 1
+      ARROW: 1
   max_blocks_per_player:
     farmer: 3
     fisher: 3

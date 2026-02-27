@@ -15,6 +15,7 @@ C:\Users\dumag\OneDrive\Desktop\AvertoxJobSystem\src\main\java\com\avertox\jobsy
 C:\Users\dumag\OneDrive\Desktop\AvertoxJobSystem\src\main\java\com\avertox\jobsystem\gui\menu\admin\AdminPlayerManageMenu.java
 C:\Users\dumag\OneDrive\Desktop\AvertoxJobSystem\src\main\java\com\avertox\jobsystem\gui\menu\admin\AdminPlayerSelectMenu.java
 C:\Users\dumag\OneDrive\Desktop\AvertoxJobSystem\src\main\java\com\avertox\jobsystem\gui\menu\AutomationCollectionMenu.java
+C:\Users\dumag\OneDrive\Desktop\AvertoxJobSystem\src\main\java\com\avertox\jobsystem\gui\menu\GeneratorBrokerMenu.java
 C:\Users\dumag\OneDrive\Desktop\AvertoxJobSystem\src\main\java\com\avertox\jobsystem\gui\menu\JobOverviewMenu.java
 C:\Users\dumag\OneDrive\Desktop\AvertoxJobSystem\src\main\java\com\avertox\jobsystem\gui\menu\JobSellMenu.java
 C:\Users\dumag\OneDrive\Desktop\AvertoxJobSystem\src\main\java\com\avertox\jobsystem\gui\menu\RecipeUnlockMenu.java
@@ -31,6 +32,7 @@ C:\Users\dumag\OneDrive\Desktop\AvertoxJobSystem\src\main\java\com\avertox\jobsy
 C:\Users\dumag\OneDrive\Desktop\AvertoxJobSystem\src\main\java\com\avertox\jobsystem\listener\AutomationListener.java
 C:\Users\dumag\OneDrive\Desktop\AvertoxJobSystem\src\main\java\com\avertox\jobsystem\listener\CraftingListener.java
 C:\Users\dumag\OneDrive\Desktop\AvertoxJobSystem\src\main\java\com\avertox\jobsystem\listener\FarmerListener.java
+C:\Users\dumag\OneDrive\Desktop\AvertoxJobSystem\src\main\java\com\avertox\jobsystem\listener\FireworkSafetyListener.java
 C:\Users\dumag\OneDrive\Desktop\AvertoxJobSystem\src\main\java\com\avertox\jobsystem\listener\FisherListener.java
 C:\Users\dumag\OneDrive\Desktop\AvertoxJobSystem\src\main\java\com\avertox\jobsystem\listener\HunterListener.java
 C:\Users\dumag\OneDrive\Desktop\AvertoxJobSystem\src\main\java\com\avertox\jobsystem\listener\MinerListener.java
