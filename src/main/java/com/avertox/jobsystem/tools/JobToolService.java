@@ -264,7 +264,7 @@ public class JobToolService {
     }
 
     private void applyEnchants(ItemMeta meta, JobType type, int tier) {
-        int speedLevel = Math.max(1, Math.min(6, (tier + 1) / 2));
+        int speedLevel = Math.max(1, Math.min(10, tier));
         switch (type) {
             case FARMER -> meta.addEnchant(Enchantment.DIG_SPEED, speedLevel, true);
             case FISHER -> {

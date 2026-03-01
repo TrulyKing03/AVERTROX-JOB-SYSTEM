@@ -24,6 +24,7 @@ import com.avertox.jobsystem.listener.CraftingListener;
 import com.avertox.jobsystem.listener.PlacedBlockListener;
 import com.avertox.jobsystem.listener.ToolLossListener;
 import com.avertox.jobsystem.listener.WoodcutterListener;
+import com.avertox.jobsystem.recipes.ConfiguredRecipeDefinition;
 import com.avertox.jobsystem.recipes.CustomCraftingManager;
 import com.avertox.jobsystem.recipes.RecipeManager;
 import com.avertox.jobsystem.tracker.PlacedBlockTracker;
@@ -33,6 +34,8 @@ import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
+
+import java.util.List;
 
 public class AvertoxJobSystemPlugin extends JavaPlugin {
     private ConfigManager configManager;
@@ -72,9 +75,10 @@ public class AvertoxJobSystemPlugin extends JavaPlugin {
         jobManager.registerJob(minerJob);
         jobManager.registerJob(hunterJob);
 
-        this.recipeManager = new RecipeManager();
+        List<ConfiguredRecipeDefinition> configuredRecipes = configManager.getConfiguredRecipes();
+        this.recipeManager = new RecipeManager(configuredRecipes);
         this.customCraftingManager = new CustomCraftingManager(this);
-        customCraftingManager.registerRecipes();
+        customCraftingManager.registerRecipes(configuredRecipes);
         this.automationManager = new AutomationManager(this, configManager, mySqlManager);
         automationManager.start();
         this.menuManager = new MenuManager();

@@ -57,7 +57,8 @@ public class GeneratorBrokerMenu implements BaseMenu {
             return;
         }
         Material generator = configManager.getGeneratorBlock(selected);
-        player.sendMessage("\u00A7eGenerator Broker\u00A77: Place \u00A7f" + generator + "\u00A77 for \u00A7f" + selected + "\u00A77 automation once level 10 is reached.");
+        int requiredLevel = configManager.getAutomationRequiredJobLevel(selected);
+        player.sendMessage("\u00A7eGenerator Broker\u00A77: Place \u00A7f" + generator + "\u00A77 for \u00A7f" + selected + "\u00A77 automation once level " + requiredLevel + " is reached.");
     }
 
     @Override
@@ -82,9 +83,10 @@ public class GeneratorBrokerMenu implements BaseMenu {
         PlayerJobData data = jobManager.getOrCreate(player.getUniqueId(), type);
         Material generator = configManager.getGeneratorBlock(type);
         Map<Material, Integer> outputs = configManager.getGeneratorOutputs(type);
+        int requiredLevel = configManager.getAutomationRequiredJobLevel(type);
 
         List<String> lore = new ArrayList<>();
-        lore.add("\u00A77Required Level: \u00A7f10");
+        lore.add("\u00A77Required Level: \u00A7f" + requiredLevel);
         lore.add("\u00A77Your Level: \u00A7f" + data.getLevel());
         lore.add("\u00A77Generator Block: \u00A7f" + generator);
         lore.add("\u00A77Authorized Outputs:");
@@ -92,7 +94,7 @@ public class GeneratorBrokerMenu implements BaseMenu {
             lore.add("\u00A7a- " + entry.getKey() + " x" + entry.getValue());
         }
         lore.add("\u00A78");
-        lore.add(data.getLevel() >= 10 ? "\u00A7aReady to place generator" : "\u00A7cLevel 10 required");
+        lore.add(data.getLevel() >= requiredLevel ? "\u00A7aReady to place generator" : "\u00A7cLevel " + requiredLevel + " required");
         lore.add("\u00A7eClick for NPC guidance message");
 
         inventory.setItem(slot, MenuUtil.item(generator, "\u00A7e\u00A7l" + type.name() + " Generator", lore));

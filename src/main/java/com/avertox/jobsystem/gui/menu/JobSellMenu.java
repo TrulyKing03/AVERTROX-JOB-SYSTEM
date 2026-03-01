@@ -20,6 +20,7 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 public class JobSellMenu implements BaseMenu {
     private static final int[] PREVIEW_SLOTS = {11, 12, 13, 14, 15, 20, 21, 23, 24, 29, 30, 31, 32, 33};
@@ -65,8 +66,8 @@ public class JobSellMenu implements BaseMenu {
         inventory.clear();
         MenuUtil.frame(inventory, Material.BROWN_STAINED_GLASS_PANE, "\u00A76");
 
-        SalePreview preview = scan(player);
         JobType active = jobManager.getActiveJob(player.getUniqueId());
+        SalePreview preview = scan(player, active);
 
         inventory.setItem(4, MenuUtil.item(Material.GOLD_INGOT, "\u00A76\u00A7lJob Handler", List.of(
                 "\u00A77Active Job: \u00A7f" + (active == null ? "None" : active.name()),
@@ -99,16 +100,33 @@ public class JobSellMenu implements BaseMenu {
             inventory.setItem(PREVIEW_SLOTS[idx++], stack);
         }
 
-        inventory.setItem(22, MenuUtil.item(Material.EMERALD_BLOCK, "\u00A7a\u00A7lSell All", List.of(
-                "\u00A77Sell all priced items from inventory",
-                "\u00A77Expected payout: \u00A7a$" + formatMoney(preview.totalValue())
-        )));
-        inventory.setItem(40, MenuUtil.item(Material.EMERALD, "\u00A7bSell Main Hand", List.of(
-                "\u00A77Quick-sell your held item stack."
-        )));
+        if (active == null) {
+            inventory.setItem(22, MenuUtil.item(Material.BARRIER, "\u00A7c\u00A7lNo Active Job", List.of(
+                    "\u00A77Select an active job in /jobs",
+                    "\u00A77before selling any items."
+            )));
+            inventory.setItem(40, MenuUtil.item(Material.BARRIER, "\u00A7cMain Hand Disabled", List.of(
+                    "\u00A77Activate a job to sell job items."
+            )));
+        } else {
+            inventory.setItem(22, MenuUtil.item(Material.EMERALD_BLOCK, "\u00A7a\u00A7lSell All", List.of(
+                    "\u00A77Sell all priced items for your active job",
+                    "\u00A77Expected payout: \u00A7a$" + formatMoney(preview.totalValue())
+            )));
+            inventory.setItem(40, MenuUtil.item(Material.EMERALD, "\u00A7bSell Main Hand", List.of(
+                    "\u00A77Quick-sell your held item stack",
+                    "\u00A77if it belongs to your active job."
+            )));
+        }
     }
 
     private void sellAll(Player player) {
+        JobType active = jobManager.getActiveJob(player.getUniqueId());
+        if (active == null) {
+            player.sendMessage("\u00A7cSelect an active job before selling items.");
+            return;
+        }
+        Set<Material> allowed = configManager.getSellableMaterials(active);
         ItemStack[] storage = player.getInventory().getStorageContents();
         double total = 0.0D;
         int soldItems = 0;
@@ -116,6 +134,9 @@ public class JobSellMenu implements BaseMenu {
         for (int i = 0; i < storage.length; i++) {
             ItemStack stack = storage[i];
             if (stack == null || stack.getType() == Material.AIR) {
+                continue;
+            }
+            if (!allowed.contains(stack.getType())) {
                 continue;
             }
             double unit = unitPrice(stack.getType());
@@ -138,9 +159,19 @@ public class JobSellMenu implements BaseMenu {
     }
 
     private void sellMainHand(Player player) {
+        JobType active = jobManager.getActiveJob(player.getUniqueId());
+        if (active == null) {
+            player.sendMessage("\u00A7cSelect an active job before selling items.");
+            return;
+        }
+        Set<Material> allowed = configManager.getSellableMaterials(active);
         ItemStack hand = player.getInventory().getItemInMainHand();
         if (hand == null || hand.getType() == Material.AIR) {
             player.sendMessage("\u00A7cHold a sellable item in your main hand.");
+            return;
+        }
+        if (!allowed.contains(hand.getType())) {
+            player.sendMessage("\u00A7cThis item cannot be sold for your active job (" + active.name() + ").");
             return;
         }
         double unit = unitPrice(hand.getType());
@@ -163,11 +194,18 @@ public class JobSellMenu implements BaseMenu {
         }
     }
 
-    private SalePreview scan(Player player) {
+    private SalePreview scan(Player player, JobType active) {
+        if (active == null) {
+            return new SalePreview(Map.of(), 0.0D);
+        }
+        Set<Material> allowed = configManager.getSellableMaterials(active);
         Map<Material, Integer> totals = new EnumMap<>(Material.class);
         double sum = 0.0D;
         for (ItemStack stack : player.getInventory().getStorageContents()) {
             if (stack == null || stack.getType() == Material.AIR) {
+                continue;
+            }
+            if (!allowed.contains(stack.getType())) {
                 continue;
             }
             double unit = unitPrice(stack.getType());

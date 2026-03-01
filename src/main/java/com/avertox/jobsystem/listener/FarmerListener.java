@@ -13,6 +13,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
+import org.bukkit.StructureType;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.Ageable;
 import org.bukkit.entity.Player;
@@ -22,7 +23,9 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 public class FarmerListener implements Listener {
@@ -33,6 +36,7 @@ public class FarmerListener implements Listener {
     private final JobToolService toolService;
     private final PlacedBlockTracker placedBlockTracker;
     private final Set<String> regrowing = new HashSet<>();
+    private final Map<String, Boolean> regrowthAreaCache = new HashMap<>();
 
     public FarmerListener(
             JavaPlugin plugin,
@@ -86,14 +90,21 @@ public class FarmerListener implements Listener {
         double xp = configManager.getReward(JobType.FARMER, "crop_xp") * (0.35D + toolTier * 0.03D);
         jobManager.addProgress(player, JobType.FARMER, xp, 0.0D);
 
-        if (farmerJob.hasTntAutoHarvest(data.getLevel()) && Math.random() < configManager.getTntAutoHarvestChance()) {
-            runTntHarvestBurst(player, block.getLocation(), data.getLevel(), hand);
+        boolean regrowthAllowed = isRegrowthAreaAllowed(block.getLocation());
+        if (!regrowthAllowed) {
+            player.sendMessage("\u00A7cCrop regrowth only works in city or village areas.");
         }
 
-        scheduleRegrowth(block.getLocation(), block.getType(), data.getLevel());
+        if (farmerJob.hasTntAutoHarvest(data.getLevel()) && Math.random() < configManager.getTntAutoHarvestChance()) {
+            runTntHarvestBurst(player, block.getLocation(), data.getLevel(), hand, regrowthAllowed);
+        }
+
+        if (regrowthAllowed) {
+            scheduleRegrowth(block.getLocation(), block.getType(), data.getLevel());
+        }
     }
 
-    private void runTntHarvestBurst(Player player, Location center, int level, ItemStack tool) {
+    private void runTntHarvestBurst(Player player, Location center, int level, ItemStack tool, boolean regrowthAllowed) {
         center.getWorld().spawnParticle(Particle.EXPLOSION_NORMAL, center.clone().add(0.5, 0.5, 0.5), 18, 1.2, 0.6, 1.2, 0.02);
         player.playSound(center, Sound.ENTITY_GENERIC_EXPLODE, 0.7f, 1.35f);
 
@@ -115,7 +126,9 @@ public class FarmerListener implements Listener {
                     Material cropType = b.getType();
                     giveHarvestOnlyDrops(player, b, tool);
                     b.setType(Material.AIR, false);
-                    scheduleRegrowth(loc, cropType, level);
+                    if (regrowthAllowed) {
+                        scheduleRegrowth(loc, cropType, level);
+                    }
                     harvested++;
                 }
             }
@@ -146,6 +159,54 @@ public class FarmerListener implements Listener {
             }
             regrowing.remove(key);
         }, seconds * 20L);
+    }
+
+    private boolean isRegrowthAreaAllowed(Location location) {
+        if (!configManager.isFarmerRegrowthAreaRestrictionEnabled()) {
+            return true;
+        }
+        if (location.getWorld() == null) {
+            return false;
+        }
+
+        String chunkKey = location.getWorld().getName() + ":" + (location.getBlockX() >> 4) + ":" + (location.getBlockZ() >> 4);
+        Boolean cached = regrowthAreaCache.get(chunkKey);
+        if (cached != null) {
+            return cached;
+        }
+
+        boolean allowed = isWithinCitySpawnRadius(location) || isNearVillage(location);
+        if (regrowthAreaCache.size() > 4096) {
+            regrowthAreaCache.clear();
+        }
+        regrowthAreaCache.put(chunkKey, allowed);
+        return allowed;
+    }
+
+    private boolean isWithinCitySpawnRadius(Location location) {
+        int radius = configManager.getFarmerCitySpawnRadiusBlocks();
+        if (radius <= 0 || location.getWorld() == null) {
+            return false;
+        }
+        Location spawn = location.getWorld().getSpawnLocation();
+        if (!spawn.getWorld().equals(location.getWorld())) {
+            return false;
+        }
+        double dx = location.getX() - spawn.getX();
+        double dz = location.getZ() - spawn.getZ();
+        return (dx * dx) + (dz * dz) <= (radius * radius);
+    }
+
+    private boolean isNearVillage(Location location) {
+        int searchRadius = configManager.getFarmerVillageSearchRadiusBlocks();
+        if (searchRadius <= 0 || location.getWorld() == null) {
+            return false;
+        }
+        try {
+            return location.getWorld().locateNearestStructure(location, StructureType.VILLAGE, searchRadius, false) != null;
+        } catch (Exception | NoSuchMethodError ex) {
+            return false;
+        }
     }
 
     private void giveHarvestOnlyDrops(Player player, Block crop, ItemStack tool) {

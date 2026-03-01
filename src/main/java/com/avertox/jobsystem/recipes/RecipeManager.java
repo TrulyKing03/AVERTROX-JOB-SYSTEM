@@ -10,31 +10,12 @@ import java.util.Set;
 public class RecipeManager {
     private final Map<JobType, Map<String, Integer>> requiredLevels = new HashMap<>();
 
-    public RecipeManager() {
-        registerDefaults();
-    }
-
-    private void registerDefaults() {
-        requiredLevels.put(JobType.FARMER, Map.of(
-                "nutrient_stew", 4,
-                "harvester_bread", 7
-        ));
-        requiredLevels.put(JobType.FISHER, Map.of(
-                "xp_bait", 4,
-                "legend_lure", 8
-        ));
-        requiredLevels.put(JobType.WOODCUTTER, Map.of(
-                "resin_plank", 5,
-                "reinforced_handle", 8
-        ));
-        requiredLevels.put(JobType.MINER, Map.of(
-                "light_alloy", 5,
-                "vein_core", 8
-        ));
-        requiredLevels.put(JobType.HUNTER, Map.of(
-                "tracker_bait", 4,
-                "predator_ration", 8
-        ));
+    public RecipeManager(Iterable<ConfiguredRecipeDefinition> configuredRecipes) {
+        for (ConfiguredRecipeDefinition recipe : configuredRecipes) {
+            requiredLevels
+                    .computeIfAbsent(recipe.jobType(), unused -> new HashMap<>())
+                    .put(recipe.key(), Math.max(1, recipe.requiredLevel()));
+        }
     }
 
     public Set<String> availableRecipes(JobType type) {

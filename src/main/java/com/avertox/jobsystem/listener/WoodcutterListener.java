@@ -16,6 +16,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.event.player.PlayerItemDamageEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -88,11 +89,26 @@ public class WoodcutterListener implements Listener {
             fellTree(block);
         }
 
-        // Levels 6-10: chopping speed boost.
-        if (woodcutterJob.improvedChoppingAndDurability(level)) {
-            int amplifier = toolTier >= 8 ? 1 : 0;
-            player.addPotionEffect(new PotionEffect(PotionEffectType.FAST_DIGGING, 80, amplifier, true, false, false));
+        // Tool tier and higher job levels both improve chopping speed.
+        applyChoppingSpeed(player, level, toolTier, 80);
+    }
+
+    @EventHandler
+    public void onLogDamage(BlockDamageEvent event) {
+        if (!JobMaterials.LOGS.contains(event.getBlock().getType())) {
+            return;
         }
+        Player player = event.getPlayer();
+        if (!jobManager.isActiveJob(player.getUniqueId(), JobType.WOODCUTTER)) {
+            return;
+        }
+        if (!toolService.hasUsableTool(player, JobType.WOODCUTTER)) {
+            return;
+        }
+
+        PlayerJobData data = jobManager.getOrCreate(player.getUniqueId(), JobType.WOODCUTTER);
+        int toolTier = toolService.getHeldTier(player, JobType.WOODCUTTER);
+        applyChoppingSpeed(player, data.getLevel(), toolTier, 100);
     }
 
     @EventHandler
@@ -121,6 +137,17 @@ public class WoodcutterListener implements Listener {
         if (Math.random() < cancelChance) {
             event.setCancelled(true);
         }
+    }
+
+    private void applyChoppingSpeed(Player player, int level, int toolTier, int durationTicks) {
+        if (toolTier <= 1 && !woodcutterJob.improvedChoppingAndDurability(level)) {
+            return;
+        }
+        int hasteAmplifier = Math.max(0, (toolTier - 1) / 3);
+        if (woodcutterJob.improvedChoppingAndDurability(level)) {
+            hasteAmplifier = Math.min(4, hasteAmplifier + 1);
+        }
+        player.addPotionEffect(new PotionEffect(PotionEffectType.FAST_DIGGING, durationTicks, hasteAmplifier, true, false, false));
     }
 
     private void fellTree(Block origin) {

@@ -16,6 +16,12 @@ economy:
 
 automation:
   max_level: 10
+  # -1 = use each job's configured maximum level (based on level_thresholds size).
+  required_job_level: -1
+  # Optional per-job override. Example:
+  # required_job_level_by_job:
+  #   farmer: 9
+  required_job_level_by_job: {}
   slot_base: 6
   slot_per_level: 2
   speed_upgrade_seconds: 2
@@ -62,6 +68,10 @@ jobs:
     level_thresholds: [0, 100, 250, 450, 700, 1000, 1400, 1900, 2500, 3200]
     regrowth_seconds: 30
     tnt_auto_harvest_chance: 0.10
+    regrowth_restrictions:
+      enabled: true
+      city_spawn_radius_blocks: 256
+      village_search_radius_blocks: 384
     upgrade_costs:
       hoe_1: 500
       hoe_2: 1200
@@ -115,6 +125,193 @@ rewards:
   hunter:
     kill_xp: 9
     kill_money: 0
+
+# Optional override lists for which materials each active job is allowed to sell.
+# Leave empty to use the plugin's built-in defaults.
+# job_sell_materials:
+#   farmer:
+#     - WHEAT
+#     - CARROT
+job_sell_materials: {}
+
+# Custom craftable recipes used by /jobs recipes.
+# You can add, remove, or edit recipe entries.
+recipes:
+  nutrient_stew:
+    job: FARMER
+    required_level: 4
+    result:
+      material: MUSHROOM_STEW
+      amount: 1
+      name: "Nutrient Stew"
+      lore:
+        - "Hunger bonus"
+    shape:
+      - "WWW"
+      - "CBC"
+      - "WWW"
+    ingredients:
+      W: WHEAT
+      C: CARROT
+      B: BOWL
+
+  harvester_bread:
+    job: FARMER
+    required_level: 7
+    result:
+      material: BREAD
+      amount: 1
+      name: "Harvester Bread"
+      lore:
+        - "Efficiency bonus"
+    shape:
+      - "WWW"
+      - "W W"
+      - "WWW"
+    ingredients:
+      W: WHEAT
+
+  xp_bait:
+    job: FISHER
+    required_level: 4
+    result:
+      material: STRING
+      amount: 1
+      name: "XP Bait"
+      lore:
+        - "Fishing XP bonus"
+    shape:
+      - " FS"
+      - "SRS"
+      - " SF"
+    ingredients:
+      F: COD
+      S: STRING
+      R: REDSTONE
+
+  legend_lure:
+    job: FISHER
+    required_level: 8
+    result:
+      material: HEART_OF_THE_SEA
+      amount: 1
+      name: "Legend Lure"
+      lore:
+        - "Rare fish chance bonus"
+    shape:
+      - "GEG"
+      - "ERE"
+      - "GEG"
+    ingredients:
+      G: GOLD_INGOT
+      E: ENDER_PEARL
+      R: FISHING_ROD
+
+  resin_plank:
+    job: WOODCUTTER
+    required_level: 5
+    result:
+      material: OAK_PLANKS
+      amount: 1
+      name: "Resin Plank"
+      lore:
+        - "Job component"
+    shape:
+      - "RLR"
+      - "L L"
+      - "RLR"
+    ingredients:
+      R: SLIME_BALL
+      L: OAK_LOG
+
+  reinforced_handle:
+    job: WOODCUTTER
+    required_level: 8
+    result:
+      material: STICK
+      amount: 1
+      name: "Reinforced Handle"
+      lore:
+        - "Tool upgrade component"
+    shape:
+      - " I "
+      - " S "
+      - " S "
+    ingredients:
+      I: IRON_INGOT
+      S: STICK
+
+  light_alloy:
+    job: MINER
+    required_level: 5
+    result:
+      material: IRON_INGOT
+      amount: 1
+      name: "Light Alloy"
+      lore:
+        - "Upgrade component"
+    shape:
+      - "ICI"
+      - "CGC"
+      - "ICI"
+    ingredients:
+      I: IRON_INGOT
+      C: COPPER_INGOT
+      G: GOLD_INGOT
+
+  vein_core:
+    job: MINER
+    required_level: 8
+    result:
+      material: DIAMOND
+      amount: 1
+      name: "Vein Core"
+      lore:
+        - "Vein mining booster"
+    shape:
+      - "ODO"
+      - "DED"
+      - "ODO"
+    ingredients:
+      O: OBSIDIAN
+      D: DIAMOND
+      E: EMERALD
+
+  tracker_bait:
+    job: HUNTER
+    required_level: 4
+    result:
+      material: RABBIT_STEW
+      amount: 1
+      name: "Tracker Bait"
+      lore:
+        - "Hunter tracking reagent"
+    shape:
+      - " M "
+      - "RBR"
+      - " M "
+    ingredients:
+      M: ROTTEN_FLESH
+      R: RABBIT
+      B: BOWL
+
+  predator_ration:
+    job: HUNTER
+    required_level: 8
+    result:
+      material: COOKED_BEEF
+      amount: 1
+      name: "Predator Ration"
+      lore:
+        - "Hunting stamina ration"
+    shape:
+      - "BBB"
+      - "RCR"
+      - "BBB"
+    ingredients:
+      B: BEEF
+      R: RABBIT
+      C: COOKED_CHICKEN
 
 sell_prices:
   # Farmer

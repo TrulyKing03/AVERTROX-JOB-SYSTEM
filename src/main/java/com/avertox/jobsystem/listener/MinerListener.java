@@ -82,11 +82,7 @@ public class MinerListener implements Listener {
             player.playSound(block.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 0.85f, 0.85f);
             double xp = configManager.getReward(JobType.MINER, "ore_xp") * (1.0D + toolTier * 0.10D);
 
-            // Level 4+: movement and mining speed boosts.
-            if (minerJob.hasSpeedBoost(level)) {
-                player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 80, 0, true, false, false));
-                player.addPotionEffect(new PotionEffect(PotionEffectType.FAST_DIGGING, 80, 0, true, false, false));
-            }
+            applyMiningSpeedEffects(player, level, toolTier, 80);
 
             // Levels 5-7+: pickaxe upgrades influence rewards and drop rate.
             if (minerJob.hasPickaxeUpgrades(level)) {
@@ -108,10 +104,7 @@ public class MinerListener implements Listener {
 
         if (material == Material.STONE || material == Material.DEEPSLATE) {
             double xp = configManager.getReward(JobType.MINER, "stone_xp");
-            if (minerJob.hasSpeedBoost(level)) {
-                player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 60, 0, true, false, false));
-                player.addPotionEffect(new PotionEffect(PotionEffectType.FAST_DIGGING, 60, 0, true, false, false));
-            }
+            applyMiningSpeedEffects(player, level, toolTier, 60);
             jobManager.addProgress(player, JobType.MINER, xp, 0.0D);
         }
     }
@@ -135,11 +128,24 @@ public class MinerListener implements Listener {
             return;
         }
         PlayerJobData data = jobManager.getOrCreate(player.getUniqueId(), JobType.MINER);
-        if (!minerJob.hasSpeedBoost(data.getLevel())) {
+        int tier = toolService.getHeldTier(player, JobType.MINER);
+        applyMiningSpeedEffects(player, data.getLevel(), tier, 100);
+    }
+
+    private void applyMiningSpeedEffects(Player player, int level, int toolTier, int durationTicks) {
+        if (toolTier <= 1 && !minerJob.hasSpeedBoost(level)) {
             return;
         }
-        player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 100, 0, true, false, false));
-        player.addPotionEffect(new PotionEffect(PotionEffectType.FAST_DIGGING, 100, 0, true, false, false));
+
+        if (minerJob.hasSpeedBoost(level)) {
+            player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, durationTicks, 0, true, false, false));
+        }
+
+        int hasteAmplifier = Math.max(0, (toolTier - 1) / 3);
+        if (minerJob.hasSpeedBoost(level)) {
+            hasteAmplifier = Math.min(4, hasteAmplifier + 1);
+        }
+        player.addPotionEffect(new PotionEffect(PotionEffectType.FAST_DIGGING, durationTicks, hasteAmplifier, true, false, false));
     }
 
     private void maybeDropBonusOre(Block block, Material ore, int upgradeTier) {

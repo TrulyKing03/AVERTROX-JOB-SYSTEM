@@ -51,8 +51,9 @@ public class AutomationListener implements Listener {
             return;
         }
         PlayerJobData data = jobManager.getOrCreate(player.getUniqueId(), type);
-        if (data.getLevel() < 10) {
-            player.sendMessage("\u00A7cYou need level 10 in " + type.name() + " to place automation.");
+        int requiredLevel = configManager.getAutomationRequiredJobLevel(type);
+        if (data.getLevel() < requiredLevel) {
+            player.sendMessage("\u00A7cYou need level " + requiredLevel + " in " + type.name() + " to place automation.");
             event.setCancelled(true);
             return;
         }
